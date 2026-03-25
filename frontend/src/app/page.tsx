@@ -13,7 +13,7 @@ import { WorkspaceChrome } from "@/components/WorkspaceChrome";
 import { cn } from "@/lib/utils";
 import type { Template } from "@/lib/types";
 
-const DEFAULT_MARKDOWN = `# DocCraft
+const DEFAULT_MARKDOWN = `# MarkType
 
 > Transform your README into beautiful documentation.
 
@@ -27,17 +27,17 @@ const DEFAULT_MARKDOWN = `# DocCraft
 ## Installation
 
 \`\`\`bash
-npm install doccraft
+npm install marktype
 cd my-project
-npx doccraft init
+npx marktype init
 \`\`\`
 
 ## Usage
 
 \`\`\`typescript
-import { DocCraft } from 'doccraft';
+import { MarkType } from 'marktype';
 
-const doc = new DocCraft({
+const doc = new MarkType({
   template: 'professional',
   output: 'pdf',
 });
@@ -144,7 +144,7 @@ export default function Home() {
   }, [markdown, template, triggerDownload]);
 
   return (
-    <div className="doccraft-app flex min-h-dvh flex-col bg-parchment bg-paper-texture">
+    <div className="marktype-app flex min-h-dvh flex-col bg-parchment bg-paper-texture">
       <Header />
 
       <div className="flex min-h-0 flex-1 flex-col px-3 py-4 sm:px-5 sm:py-6 lg:px-8 lg:py-8">

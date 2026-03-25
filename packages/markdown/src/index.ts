@@ -1,5 +1,5 @@
 /**
- * @doccraft/markdown
+ * @marktype/markdown
  * Shared markdown parsing utilities used by both the web app and worker service.
  */
 

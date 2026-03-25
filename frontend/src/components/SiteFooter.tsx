@@ -1,15 +1,16 @@
 "use client";
 
-import { BookOpen, Github } from "lucide-react";
+import { Github } from "lucide-react";
+import { BrandLogo } from "@/components/BrandLogo";
 
 export function SiteFooter() {
   return (
     <footer className="shrink-0 border-t border-ink-200/80 bg-parchment-50/95 backdrop-blur-sm">
       <div className="mx-auto flex max-w-[1600px] flex-col gap-4 px-4 py-5 sm:px-6 sm:py-6 lg:flex-row lg:items-center lg:justify-between lg:px-8">
         <div className="flex items-center gap-2 text-sm text-ink-500">
-          <BookOpen className="h-4 w-4 text-ink-400" aria-hidden />
+          <BrandLogo size={22} className="h-5 w-5 shrink-0 opacity-90" />
           <span>
-            <span className="font-medium text-ink-700">DocCraft</span>
+            <span className="font-medium text-ink-700">MarkType</span>
             <span className="text-ink-400"> · Documentação a partir de Markdown</span>
           </span>
         </div>
@@ -32,7 +33,7 @@ export function SiteFooter() {
           <span className="text-ink-400">Exporte PDF com templates profissionais</span>
         </nav>
         <p className="text-[11px] text-ink-400 lg:text-right">
-          © {new Date().getFullYear()} DocCraft
+          © {new Date().getFullYear()} MarkType
         </p>
       </div>
     </footer>

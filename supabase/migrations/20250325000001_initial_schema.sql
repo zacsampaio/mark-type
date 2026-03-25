@@ -1,6 +1,5 @@
 -- =============================================================================
--- DocCraft — Initial Database Schema
--- Run this in your Supabase SQL editor or via supabase db push
+-- MarkType — Initial Database Schema
 -- =============================================================================
 
 -- Documents table
@@ -41,13 +40,3 @@ CREATE POLICY "Allow anonymous insert" ON public.documents
 
 CREATE POLICY "Allow anonymous select" ON public.documents
   FOR SELECT USING (true);
-
--- Storage bucket for PDFs
--- Run this separately in Supabase Storage settings, or via API:
--- INSERT INTO storage.buckets (id, name, public) VALUES ('pdfs', 'pdfs', true);
-
--- Storage policy: allow public uploads and reads
--- CREATE POLICY "Allow public uploads" ON storage.objects
---   FOR INSERT WITH CHECK (bucket_id = 'pdfs');
--- CREATE POLICY "Allow public reads" ON storage.objects
---   FOR SELECT USING (bucket_id = 'pdfs');

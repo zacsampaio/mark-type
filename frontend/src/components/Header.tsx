@@ -1,9 +1,10 @@
 "use client";
 
 import Link from "next/link";
-import { BookOpen, FolderGit2, Loader2, LogIn, LogOut } from "lucide-react";
+import { FolderGit2, Loader2, LogIn, LogOut } from "lucide-react";
 import { signOut, useSession } from "next-auth/react";
 import { cn } from "@/lib/utils";
+import { BrandLogo } from "@/components/BrandLogo";
 
 export function Header() {
   const { data: session, status } = useSession();
@@ -11,19 +12,21 @@ export function Header() {
   return (
     <header className="shrink-0 border-b border-ink-200/90 bg-parchment-50/95 shadow-sm backdrop-blur-md">
       <div className="mx-auto flex max-w-[1600px] flex-col gap-4 px-4 py-4 sm:flex-row sm:items-center sm:justify-between sm:px-6 sm:py-4 lg:px-8">
-        <div className="flex items-center gap-3">
-          <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-ink-950 shadow-md ring-1 ring-ink-950/20">
-            <BookOpen className="h-5 w-5 text-parchment" aria-hidden />
-          </div>
+        <Link href="/" className="flex items-center gap-3">
+          <BrandLogo
+            size={40}
+            priority
+            className="h-10 w-10 shrink-0 rounded-xl shadow-md ring-1 ring-ink-950/20"
+          />
           <div>
             <span className="font-display text-xl font-bold leading-tight text-ink-950">
-              DocCraft
+              MarkType
             </span>
             <span className="mt-0.5 block text-[11px] font-medium uppercase tracking-[0.14em] text-ink-400">
               Gerador de documentação
             </span>
           </div>
-        </div>
+        </Link>
 
         <div className="flex items-center justify-end gap-3">
           {status === "loading" ? (

@@ -1,9 +1,9 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   transpilePackages: [
-    '@doccraft/markdown',
-    '@doccraft/templates',
-    '@doccraft/document-styles',
+    '@marktype/markdown',
+    '@marktype/templates',
+    '@marktype/document-styles',
   ],
 };
 

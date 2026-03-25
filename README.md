@@ -1,4 +1,4 @@
-# DocCraft
+# MarkType
 
 **Gerador de documentação a partir de Markdown** — com pré-visualização em vários modelos visuais e exportação para **PDF**.
 
@@ -25,7 +25,7 @@ Destinado a **equipas que documentam software** (READMEs, guias internos, notas 
 Monorepo **npm workspaces**:
 
 - **`frontend/`** — Next.js (App Router): interface, rotas `/api/*` (BFF).
-- **`backend/supabase/migrations/`** — SQL para Postgres + notas de Storage.
+- **`supabase/migrations/`** — SQL aplicado pelo Supabase CLI (`supabase db reset` / cloud `db push`).
 - **`packages/`** — `markdown`, `templates`, `document-styles` (HTML/CSS partilhado com a exportação PDF).
 
 Fluxo resumido: o browser fala só com o Next; o Next gera PDF e integra com Supabase (Storage + DB).
@@ -46,11 +46,11 @@ Fluxo resumido: o browser fala só com o Next; o Next gera PDF e integra com Sup
 ### 1. Obter o código
 
 ```bash
-git clone https://github.com/SEU_USUARIO/doccraft.git
-cd doccraft
+git clone https://github.com/SEU_USUARIO/marktype.git
+cd marktype
 ```
 
-Substitui `SEU_USUARIO/doccraft` pelo URL real do repositório público.
+Substitui `SEU_USUARIO/marktype` pelo URL real do repositório público.
 
 ### 2. Instalar dependências
 
@@ -86,12 +86,31 @@ Edita `frontend/.env.local`:
 
 ### Supabase
 
-1. Cria um projeto em [app.supabase.com](https://app.supabase.com).
-2. **SQL Editor** — executa por ordem:
-   - `backend/supabase/migrations/001_initial_schema.sql` — tabela `documents`, RLS de MVP.
-   - Se já tinhas uma base criada só com os modelos antigos, executa também `002_template_values.sql`.
-3. **Storage** — cria um bucket **público** com o nome exato **`pdfs`** (o código usa este id).
-4. Se o upload falhar, configura políticas de `INSERT`/`SELECT` em `storage.objects` para o bucket `pdfs` (ver documentação Supabase).
+#### Opção A — Local (Docker + CLI)
+
+Na **raiz** do repositório (precisas de [Docker Desktop](https://www.docker.com/products/docker-desktop/) a correr):
+
+```bash
+npx supabase@latest start
+```
+
+No fim, o CLI mostra **API URL**, **anon key** e **service_role key**. Copia para `frontend/.env.local`:
+
+| Variável | Valor típico (local) |
+|----------|----------------------|
+| `NEXT_PUBLIC_SUPABASE_URL` | `http://127.0.0.1:54321` |
+| `NEXT_PUBLIC_SUPABASE_ANON_KEY` | (output de `supabase status`) |
+| `SUPABASE_SERVICE_ROLE_KEY` | (output de `supabase status`) |
+
+Comandos úteis: `npx supabase status`, `npx supabase stop`, `npx supabase db reset` (reaplica `supabase/migrations/`).
+
+**Ligar o teu projeto na cloud** (opcional, para `db push` / backups): `npx supabase login` e depois `npx supabase link --project-ref <ref>` (o `ref` está em *Project Settings → General* no dashboard).
+
+#### Opção B — Projeto em [app.supabase.com](https://app.supabase.com)
+
+1. Cria o projeto no dashboard.
+2. **SQL Editor** — cola e executa o conteúdo dos ficheiros em `supabase/migrations/` **por ordem** (prefixo `20250325...`).
+3. O bucket **`pdfs`** e a policy de leitura vêm na migration `...04_storage_bucket_pdfs.sql`; se algo falhar, cria o bucket manualmente como **público** com o id `pdfs`.
 
 ### Arranque em desenvolvimento
 
@@ -170,10 +189,30 @@ npm run build
 Compila `packages/*` necessários e o **frontend**. Para servir o Next em produção:
 
 ```bash
-npm run start --workspace=@doccraft/web
+npm run start --workspace=@marktype/web
 ```
 
 Em produção garante que o Supabase e o bucket `pdfs` estão configurados no ambiente alvo.
+
+### Vercel (Auth.js / login)
+
+No **Project → Settings → Environment Variables** (Production), define:
+
+| Variável | Notas |
+|----------|--------|
+| `AUTH_SECRET` | String aleatória longa (`openssl rand -base64 32`). **Não** é o Client Secret do GitHub. |
+| `AUTH_URL` | URL pública do deploy, ex.: `https://mark-type.vercel.app` (sem path). |
+| `AUTH_GITHUB_ID` / `AUTH_GITHUB_SECRET` | Client ID e Client Secret do OAuth App no GitHub. |
+| `NEXT_PUBLIC_SUPABASE_URL` / `NEXT_PUBLIC_SUPABASE_ANON_KEY` | Login por e-mail. |
+| `SUPABASE_SERVICE_ROLE_KEY` | Servidor (PDF / Storage). |
+
+No **GitHub OAuth App**, a **Authorization callback URL** deve ser exatamente:
+
+`https://SEU_DOMINIO.vercel.app/api/auth/callback/github`
+
+(não é a home `/`). Depois de alterar variáveis na Vercel, faz **Redeploy**.
+
+Para validar: abre `https://SEU_DOMINIO.vercel.app/api/auth/session` — deve responder JSON (200), não erro 500.
 
 ---
 
@@ -198,4 +237,4 @@ Contribuições são bem-vindas: issues para bugs ou ideias, pull requests com a
 
 **MIT** — vê o ficheiro de licença no repositório (se ainda não existir, podes adicionar `LICENSE` com texto MIT padrão).
 
-© DocCraft Contributors
+© MarkType Contributors

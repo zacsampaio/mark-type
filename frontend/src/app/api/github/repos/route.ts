@@ -39,7 +39,7 @@ export async function GET(req: NextRequest) {
         headers: {
           Authorization: `Bearer ${gh}`,
           Accept: "application/vnd.github+json",
-          "User-Agent": "DocCraft/1.0",
+          "User-Agent": "MarkType/1.0",
         },
       }
     );

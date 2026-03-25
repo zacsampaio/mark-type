@@ -8,6 +8,24 @@ interface PersistExportInput {
   template: Template;
   fileUrl: string;
   title: string;
+  /** NextAuth `session.user.id` (JWT sub): Supabase UUID ou id GitHub */
+  sessionSub?: string | null;
+}
+
+/** `user_id` referencia auth.users: só UUID válido (login e-mail Supabase). GitHub usa só owner_sub. */
+function columnsFromSessionSub(sub: string | null | undefined): {
+  owner_sub: string | null;
+  user_id: string | null;
+} {
+  if (!sub?.trim()) return { owner_sub: null, user_id: null };
+  const s = sub.trim();
+  const isUuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(
+    s
+  );
+  return {
+    owner_sub: s,
+    user_id: isUuid ? s : null,
+  };
 }
 
 export async function uploadExportFile(
@@ -39,14 +57,17 @@ export async function persistExportRecord({
   template,
   fileUrl,
   title,
+  sessionSub,
 }: PersistExportInput): Promise<void> {
+  const { owner_sub, user_id } = columnsFromSessionSub(sessionSub);
   const supabase = createServerSupabaseClient();
   await supabase.from("documents").insert({
     title,
     markdown,
     template,
     pdf_url: fileUrl,
-    user_id: null,
+    user_id,
+    owner_sub,
   });
 }
 

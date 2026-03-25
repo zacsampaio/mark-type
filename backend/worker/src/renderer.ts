@@ -2,7 +2,7 @@
  * Puppeteer-based PDF renderer (fallback when LaTeX is unavailable).
  * Requires puppeteer to be installed: npm install puppeteer
  */
-import { buildStyledDocumentHtml } from "@doccraft/document-styles";
+import { buildStyledDocumentHtml } from "@marktype/document-styles";
 
 export async function generateWithPuppeteer(
   html: string,
@@ -13,7 +13,7 @@ export async function generateWithPuppeteer(
     puppeteer = await import("puppeteer");
   } catch {
     throw new Error(
-      "Puppeteer not installed. Run: npm install puppeteer --workspace=@doccraft/worker"
+      "Puppeteer not installed. Run: npm install puppeteer --workspace=@marktype/worker"
     );
   }
 
@@ -41,7 +41,7 @@ export async function generateWithPuppeteer(
       displayHeaderFooter: true,
       footerTemplate: `
         <div style="font-size:9px;color:#9e9280;width:100%;text-align:center;font-family:sans-serif;padding:0 2.5cm;">
-          DocCraft · <span class="pageNumber"></span> / <span class="totalPages"></span>
+          MarkType · <span class="pageNumber"></span> / <span class="totalPages"></span>
         </div>`,
       headerTemplate: "<div></div>",
     });

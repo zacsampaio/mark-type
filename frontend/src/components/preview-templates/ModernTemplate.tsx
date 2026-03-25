@@ -11,7 +11,7 @@ export function ModernTemplate({ html, title, description }: ModernTemplateProps
     <TemplateFrame
       title={title}
       description={description}
-      meta={`DocCraft · ${new Date().getFullYear()}`}
+      meta={`MarkType · ${new Date().getFullYear()}`}
       className="doc-preview template-modern"
       badgeClassName="bg-jade/10 text-jade border border-jade/20"
       titleClassName="font-body font-semibold text-ink-950"

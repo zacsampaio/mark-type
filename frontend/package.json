@@ -1,5 +1,5 @@
 {
-  "name": "@doccraft/web",
+  "name": "@marktype/web",
   "version": "0.1.0",
   "private": true,
   "scripts": {
@@ -9,9 +9,9 @@
     "lint": "next lint"
   },
   "dependencies": {
-    "@doccraft/document-styles": "*",
-    "@doccraft/markdown": "*",
-    "@doccraft/templates": "*",
+    "@marktype/document-styles": "*",
+    "@marktype/markdown": "*",
+    "@marktype/templates": "*",
     "@radix-ui/react-select": "^2.0.0",
     "@radix-ui/react-tabs": "^1.0.4",
     "@sparticuz/chromium": "^123.0.1",

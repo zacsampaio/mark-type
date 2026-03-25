@@ -10,7 +10,7 @@ export async function fetchGithubReadmeMarkdown(
 > {
   const headers: Record<string, string> = {
     Accept: "application/vnd.github.v3.raw",
-    "User-Agent": "DocCraft/1.0",
+    "User-Agent": "MarkType/1.0",
     Authorization: `Bearer ${token}`,
   };
 

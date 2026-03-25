@@ -1,5 +1,5 @@
 {
-  "name": "@doccraft/document-styles",
+  "name": "@marktype/document-styles",
   "version": "0.1.0",
   "private": true,
   "main": "./dist/index.js",

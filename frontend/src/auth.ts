@@ -6,7 +6,26 @@ import { createClient } from "@supabase/supabase-js";
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL ?? "";
 const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ?? "";
 
+/** Auth.js exige `secret`. Em dev, sem .env, usamos fallback só para não quebrar o servidor local. */
+const DEV_AUTH_SECRET_FALLBACK =
+  "marktype-local-dev-only-not-for-production-min-32chars";
+
+const authSecretFromEnv =
+  process.env.AUTH_SECRET?.trim() || process.env.NEXTAUTH_SECRET?.trim();
+
+const authSecret =
+  authSecretFromEnv ||
+  (process.env.NODE_ENV === "development" ? DEV_AUTH_SECRET_FALLBACK : "");
+
+if (!authSecretFromEnv && process.env.NODE_ENV === "development") {
+  console.warn(
+    "[auth] AUTH_SECRET não definido — usando segredo de desenvolvimento. " +
+      "Defina AUTH_SECRET em frontend/.env.local (openssl rand -base64 32)."
+  );
+}
+
 export const { handlers, auth, signIn, signOut } = NextAuth({
+  ...(authSecret ? { secret: authSecret } : {}),
   trustHost: true,
   session: { strategy: "jwt", maxAge: 30 * 24 * 60 * 60 },
   pages: {

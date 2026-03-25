@@ -1,6 +1,5 @@
 -- =============================================================================
--- DocCraft — Ampliar valores permitidos em documents.template
--- Execute se você já rodou a 001 com apenas professional/modern.
+-- MarkType — Ampliar valores permitidos em documents.template
 -- =============================================================================
 
 ALTER TABLE public.documents DROP CONSTRAINT IF EXISTS documents_template_check;

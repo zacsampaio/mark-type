@@ -15,7 +15,7 @@ export function ProfessionalTemplate({
     <TemplateFrame
       title={title}
       description={description}
-      meta={`${new Date().toLocaleDateString("pt-BR")} · DocCraft`}
+      meta={`${new Date().toLocaleDateString("pt-BR")} · MarkType`}
       className="doc-preview template-professional"
       headerClassName="text-center border-ink-950 pb-8"
       badgeClassName="bg-ink-950 text-white rounded-md tracking-wide uppercase"

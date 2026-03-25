@@ -3,10 +3,14 @@ import { AuthProvider } from "@/components/AuthProvider";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "DocCraft — Transform READMEs into Beautiful Documentation",
+  title: "MarkType — Transform READMEs into Beautiful Documentation",
   description:
     "Paste Markdown or import from GitHub and instantly generate professional, beautifully formatted documentation.",
   keywords: ["documentation", "markdown", "readme", "pdf", "generator"],
+  icons: {
+    icon: "/logo.png",
+    apple: "/logo.png",
+  },
 };
 
 export default function RootLayout({

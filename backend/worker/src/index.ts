@@ -9,7 +9,7 @@ app.use(cors());
 app.use(express.json({ limit: "10mb" }));
 
 app.get("/health", (_req, res) => {
-  res.json({ status: "ok", service: "doccraft-worker", timestamp: new Date().toISOString() });
+  res.json({ status: "ok", service: "marktype-worker", timestamp: new Date().toISOString() });
 });
 
 app.post("/generate", async (req, res) => {
@@ -37,7 +37,7 @@ app.post("/generate", async (req, res) => {
 });
 
 app.listen(PORT, () => {
-  console.log(`\n🔧 DocCraft Worker running on http://localhost:${PORT}`);
+  console.log(`\n🔧 MarkType Worker running on http://localhost:${PORT}`);
   console.log(`   Health: http://localhost:${PORT}/health`);
   console.log(`   Generate: POST http://localhost:${PORT}/generate\n`);
 });

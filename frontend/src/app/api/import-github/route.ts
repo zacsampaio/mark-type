@@ -38,7 +38,7 @@ export async function POST(req: NextRequest) {
     const token = process.env.GITHUB_TOKEN;
     const headers: Record<string, string> = {
       Accept: "application/vnd.github.v3.raw",
-      "User-Agent": "DocCraft/1.0",
+      "User-Agent": "MarkType/1.0",
     };
     if (token) headers["Authorization"] = `Bearer ${token}`;
 

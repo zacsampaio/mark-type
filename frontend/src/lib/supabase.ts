@@ -21,4 +21,5 @@ export interface DocumentRecord {
   template: string;
   pdf_url: string | null;
   user_id: string | null;
+  owner_sub: string | null;
 }

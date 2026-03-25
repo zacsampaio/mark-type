@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
-import { buildStyledDocumentHtml } from "@doccraft/document-styles";
+import { buildStyledDocumentHtml } from "@marktype/document-styles";
+import { auth } from "@/auth";
 import { markdownToHtml } from "@/lib/markdown";
 import { isValidTemplate } from "@/lib/templates";
 import type { Template } from "@/lib/types";
@@ -87,11 +88,18 @@ export async function POST(req: NextRequest) {
       });
     }
 
+    const session = await auth();
+    const sessionSub =
+      session?.user?.id && session.user.id.length > 0
+        ? session.user.id
+        : null;
+
     await persistExportRecord({
       markdown,
       template,
       fileUrl: publicUrl,
       title: "Generated PDF",
+      sessionSub,
     });
 
     return NextResponse.json({ url: publicUrl });

@@ -156,7 +156,7 @@ export default function ReposPage() {
   }
 
   return (
-    <div className="doccraft-app flex min-h-dvh flex-col bg-parchment bg-paper-texture">
+    <div className="marktype-app flex min-h-dvh flex-col bg-parchment bg-paper-texture">
       <Header />
 
       <div className="flex min-h-0 flex-1 flex-col px-3 py-4 sm:px-5 sm:py-6 lg:px-8 lg:py-8">
@@ -174,7 +174,7 @@ export default function ReposPage() {
                 Seus repositórios GitHub
               </h1>
               <p className="mt-1 text-sm text-ink-500">
-                Importe o README no DocCraft ou gere uma versão traduzida do
+                Importe o README no MarkType ou gere uma versão traduzida do
                 Markdown (requer OpenAI no servidor).
               </p>
             </div>

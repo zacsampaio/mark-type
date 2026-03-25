@@ -4,7 +4,8 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { signIn, useSession } from "next-auth/react";
-import { ArrowLeft, BookOpen, Github } from "lucide-react";
+import { ArrowLeft, Github } from "lucide-react";
+import { BrandLogo } from "@/components/BrandLogo";
 import { cn } from "@/lib/utils";
 
 type AuthMode = "login" | "signup";
@@ -112,7 +113,7 @@ export function LoginClient() {
 
   if (status === "loading") {
     return (
-      <div className="doccraft-app flex min-h-dvh items-center justify-center bg-parchment bg-paper-texture">
+      <div className="marktype-app flex min-h-dvh items-center justify-center bg-parchment bg-paper-texture">
         <p className="text-sm text-ink-500">Carregando…</p>
       </div>
     );
@@ -123,7 +124,7 @@ export function LoginClient() {
   }
 
   return (
-    <div className="doccraft-app flex min-h-dvh flex-col bg-parchment bg-paper-texture">
+    <div className="marktype-app flex min-h-dvh flex-col bg-parchment bg-paper-texture">
       <header className="shrink-0 border-b border-ink-200/90 bg-parchment-50/95 shadow-sm backdrop-blur-md">
         <div className="mx-auto flex max-w-[1600px] items-center justify-between gap-4 px-4 py-4 sm:px-6 lg:px-8">
           <Link
@@ -134,11 +135,12 @@ export function LoginClient() {
             Voltar ao app
           </Link>
           <div className="flex items-center gap-3">
-            <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-ink-950 shadow-md ring-1 ring-ink-950/20">
-              <BookOpen className="h-4 w-4 text-parchment" aria-hidden />
-            </div>
+            <BrandLogo
+              size={36}
+              className="h-9 w-9 shrink-0 rounded-lg shadow-md ring-1 ring-ink-950/20"
+            />
             <span className="font-display text-lg font-bold text-ink-950">
-              DocCraft
+              MarkType
             </span>
           </div>
         </div>
