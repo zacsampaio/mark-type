@@ -23,6 +23,7 @@ export interface GeneratePdfRequest {
 
 export interface GeneratePdfResponse {
   url?: string;
+  note?: string;
   error?: string;
 }
 

@@ -1,7 +1,9 @@
 "use client";
 
-import { useState, useCallback } from "react";
-import { Header, type ExportKind } from "@/components/Header";
+import { useState, useCallback, useEffect } from "react";
+import { usePathname } from "next/navigation";
+import { PENDING_IMPORT_STORAGE_KEY } from "@/lib/pending-import";
+import { Header } from "@/components/Header";
 import { EditorPanel } from "@/components/EditorPanel";
 import { PreviewPanel } from "@/components/PreviewPanel";
 import { StatusBar } from "@/components/StatusBar";
@@ -61,20 +63,66 @@ Pull requests are welcome. For major changes, please open an issue first to disc
 `;
 
 export default function Home() {
+  const pathname = usePathname();
   const [markdown, setMarkdown] = useState(DEFAULT_MARKDOWN);
+  const [importedRepoLabel, setImportedRepoLabel] = useState<string | null>(
+    null
+  );
+  const [importToken, setImportToken] = useState(0);
   const [template, setTemplate] = useState<Template>("modern");
-  const [exporting, setExporting] = useState<"idle" | ExportKind>("idle");
+  const [exportingPdf, setExportingPdf] = useState(false);
   const [exportStatus, setExportStatus] = useState<
     "idle" | "loading" | "success" | "error"
   >("idle");
-  const [exportUrl, setExportUrl] = useState<string | null>(null);
-  const [lastExportKind, setLastExportKind] = useState<ExportKind | null>(null);
   const [mobileTab, setMobileTab] = useState<WorkspaceMobileTab>("edit");
 
+  useEffect(() => {
+    if (pathname !== "/") return;
+    const raw = sessionStorage.getItem(PENDING_IMPORT_STORAGE_KEY);
+    if (!raw) return;
+    try {
+      const p = JSON.parse(raw) as { markdown?: string; repoName?: string };
+      if (typeof p.markdown === "string") {
+        setMarkdown(p.markdown);
+        setImportedRepoLabel(p.repoName ?? null);
+        setImportToken((t) => t + 1);
+      }
+    } catch {
+      /* ignore */
+    } finally {
+      sessionStorage.removeItem(PENDING_IMPORT_STORAGE_KEY);
+    }
+  }, [pathname]);
+
+  const triggerDownload = useCallback(async (url: string, filename: string) => {
+    if (url.startsWith("data:")) {
+      const link = document.createElement("a");
+      link.href = url;
+      link.download = filename;
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      return;
+    }
+
+    const fileRes = await fetch(url);
+    if (!fileRes.ok) {
+      throw new Error("failed to download generated file");
+    }
+    const blob = await fileRes.blob();
+    const objectUrl = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.href = objectUrl;
+    link.download = filename;
+    document.body.appendChild(link);
+    link.click();
+    link.remove();
+    URL.revokeObjectURL(objectUrl);
+  }, []);
+
   const handleExportPdf = useCallback(async () => {
-    setExporting("pdf");
+    setExportingPdf(true);
     setExportStatus("loading");
-    setExportUrl(null);
     try {
       const res = await fetch("/api/generate-pdf", {
         method: "POST",
@@ -83,8 +131,7 @@ export default function Home() {
       });
       const data = await res.json();
       if (data.url) {
-        setExportUrl(data.url);
-        setLastExportKind("pdf");
+        await triggerDownload(data.url, "documento.pdf");
         setExportStatus("success");
       } else {
         setExportStatus("error");
@@ -92,45 +139,13 @@ export default function Home() {
     } catch {
       setExportStatus("error");
     } finally {
-      setExporting("idle");
+      setExportingPdf(false);
     }
-  }, [markdown, template]);
-
-  const handleExportDocx = useCallback(async () => {
-    setExporting("docx");
-    setExportStatus("loading");
-    setExportUrl(null);
-    try {
-      const res = await fetch("/api/generate-docx", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ markdown, template }),
-      });
-      const data = await res.json();
-      if (data.url) {
-        setExportUrl(data.url);
-        setLastExportKind("docx");
-        setExportStatus("success");
-      } else {
-        setExportStatus("error");
-      }
-    } catch {
-      setExportStatus("error");
-    } finally {
-      setExporting("idle");
-    }
-  }, [markdown, template]);
+  }, [markdown, template, triggerDownload]);
 
   return (
     <div className="doccraft-app flex min-h-dvh flex-col bg-parchment bg-paper-texture">
-      <Header
-        onExportPdf={handleExportPdf}
-        onExportDocx={handleExportDocx}
-        exporting={exporting}
-        exportStatus={exportStatus}
-        exportUrl={exportUrl}
-        lastExportKind={lastExportKind}
-      />
+      <Header />
 
       <div className="flex min-h-0 flex-1 flex-col px-3 py-4 sm:px-5 sm:py-6 lg:px-8 lg:py-8">
         <div className="mx-auto flex min-h-0 w-full max-w-[1600px] flex-1 flex-col overflow-hidden rounded-2xl border border-ink-200/90 bg-white/95 shadow-[0_4px_6px_-1px_rgba(35,30,24,0.06),0_20px_40px_-12px_rgba(35,30,24,0.12)] backdrop-blur-sm">
@@ -150,6 +165,9 @@ export default function Home() {
               <EditorPanel
                 markdown={markdown}
                 onMarkdownChange={setMarkdown}
+                importedRepoName={importedRepoLabel}
+                importToken={importToken}
+                onImportedRepoConsumed={() => setImportedRepoLabel(null)}
               />
             </section>
 
@@ -164,6 +182,9 @@ export default function Home() {
                 markdown={markdown}
                 template={template}
                 onTemplateChange={setTemplate}
+                onExportPdf={handleExportPdf}
+                exportingPdf={exportingPdf}
+                exportStatus={exportStatus}
               />
             </section>
           </div>

@@ -1,11 +1,57 @@
 import { NextRequest, NextResponse } from "next/server";
 import { buildStyledDocumentHtml } from "@doccraft/document-styles";
 import { markdownToHtml } from "@/lib/markdown";
-import { createServerSupabaseClient } from "@/lib/supabase";
 import { isValidTemplate } from "@/lib/templates";
 import type { Template } from "@/lib/types";
+import { persistExportRecord, toDataUrl, uploadExportFile } from "@/lib/exports";
 
-const WORKER_URL = process.env.WORKER_URL ?? "http://localhost:4000";
+export const runtime = "nodejs";
+export const maxDuration = 60;
+
+async function renderPdfFromHtml(html: string): Promise<Buffer> {
+  const isVercel = Boolean(process.env.VERCEL);
+  if (isVercel) {
+    const chromium = (await import("@sparticuz/chromium")).default;
+    const puppeteerCore = await import("puppeteer-core");
+    const executablePath = await chromium.executablePath();
+    const browser = await puppeteerCore.launch({
+      args: chromium.args,
+      defaultViewport: chromium.defaultViewport,
+      executablePath,
+      headless: chromium.headless,
+    });
+    try {
+      const page = await browser.newPage();
+      await page.setContent(html, { waitUntil: "networkidle0" });
+      const pdf = await page.pdf({
+        format: "A4",
+        printBackground: true,
+        margin: { top: "24mm", right: "20mm", bottom: "24mm", left: "20mm" },
+      });
+      return Buffer.from(pdf);
+    } finally {
+      await browser.close();
+    }
+  }
+
+  const puppeteer = await import("puppeteer");
+  const browser = await puppeteer.default.launch({
+    headless: true,
+    args: ["--no-sandbox", "--disable-setuid-sandbox"],
+  });
+  try {
+    const page = await browser.newPage();
+    await page.setContent(html, { waitUntil: "networkidle0" });
+    const pdf = await page.pdf({
+      format: "A4",
+      printBackground: true,
+      margin: { top: "24mm", right: "20mm", bottom: "24mm", left: "20mm" },
+    });
+    return Buffer.from(pdf);
+  } finally {
+    await browser.close();
+  }
+}
 
 export async function POST(req: NextRequest) {
   try {
@@ -24,68 +70,31 @@ export async function POST(req: NextRequest) {
 
     const template = rawTemplate as Template;
     const html = markdownToHtml(markdown);
-
-    let pdfBuffer: Buffer | null = null;
-    try {
-      const workerRes = await fetch(`${WORKER_URL}/generate`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ html, template, markdown }),
-        signal: AbortSignal.timeout(30_000),
-      });
-
-      if (workerRes.ok) {
-        const arrayBuffer = await workerRes.arrayBuffer();
-        pdfBuffer = Buffer.from(arrayBuffer);
-      } else {
-        console.warn("[generate-pdf] Worker returned", workerRes.status);
-      }
-    } catch (workerErr) {
-      console.warn("[generate-pdf] Worker unavailable, using fallback HTML", workerErr);
-    }
-
-    if (!pdfBuffer) {
-      const fallbackHtml = buildStyledDocumentHtml(html, template);
-      const base64 = Buffer.from(fallbackHtml).toString("base64");
-      const dataUrl = `data:text/html;base64,${base64}`;
-
-      return NextResponse.json({
-        url: dataUrl,
-        note: "PDF worker unavailable — returning styled HTML. Open in browser and use Print → Save as PDF.",
-      });
-    }
-
-    const supabase = createServerSupabaseClient();
+    const fullHtml = buildStyledDocumentHtml(html, template);
+    const pdfBuffer = await renderPdfFromHtml(fullHtml);
     const filename = `docs/${Date.now()}-${template}.pdf`;
+    const { publicUrl, errorMessage } = await uploadExportFile(
+      filename,
+      pdfBuffer,
+      "application/pdf"
+    );
 
-    const { error: uploadError } = await supabase.storage
-      .from("pdfs")
-      .upload(filename, pdfBuffer, {
-        contentType: "application/pdf",
-        upsert: false,
-      });
-
-    if (uploadError) {
-      console.error("[generate-pdf] Supabase upload error:", uploadError.message);
-      const base64 = pdfBuffer.toString("base64");
+    if (!publicUrl) {
+      console.error("[generate-pdf] Supabase upload error:", errorMessage);
       return NextResponse.json({
-        url: `data:application/pdf;base64,${base64}`,
+        url: toDataUrl("application/pdf", pdfBuffer),
+        note: "Upload no Supabase falhou; retornando arquivo direto em base64.",
       });
     }
 
-    const { data: publicUrlData } = supabase.storage
-      .from("pdfs")
-      .getPublicUrl(filename);
-
-    await supabase.from("documents").insert({
-      title: "Generated Document",
+    await persistExportRecord({
       markdown,
       template,
-      pdf_url: publicUrlData.publicUrl,
-      user_id: null,
+      fileUrl: publicUrl,
+      title: "Generated PDF",
     });
 
-    return NextResponse.json({ url: publicUrlData.publicUrl });
+    return NextResponse.json({ url: publicUrl });
   } catch (err) {
     console.error("[generate-pdf]", err);
     return NextResponse.json({ error: "PDF generation failed" }, { status: 500 });

@@ -1,43 +1,12 @@
 "use client";
 
-import {
-  FileDown,
-  Loader2,
-  CheckCircle2,
-  AlertCircle,
-  BookOpen,
-  FileType2,
-} from "lucide-react";
+import Link from "next/link";
+import { BookOpen, FolderGit2, Loader2, LogIn, LogOut } from "lucide-react";
+import { signOut, useSession } from "next-auth/react";
 import { cn } from "@/lib/utils";
 
-export type ExportKind = "pdf" | "docx";
-
-interface HeaderProps {
-  onExportPdf: () => void;
-  onExportDocx: () => void;
-  exporting: "idle" | ExportKind;
-  exportStatus: "idle" | "loading" | "success" | "error";
-  exportUrl: string | null;
-  lastExportKind: ExportKind | null;
-}
-
-export function Header({
-  onExportPdf,
-  onExportDocx,
-  exporting,
-  exportStatus,
-  exportUrl,
-  lastExportKind,
-}: HeaderProps) {
-  const busyPdf = exporting === "pdf";
-  const busyDocx = exporting === "docx";
-  const busy = busyPdf || busyDocx;
-
-  const successLabel =
-    lastExportKind === "docx" ? "Word pronto — baixar" : "PDF pronto — baixar";
-
-  const defaultFilename =
-    lastExportKind === "docx" ? "documento.docx" : "documento.pdf";
+export function Header() {
+  const { data: session, status } = useSession();
 
   return (
     <header className="shrink-0 border-b border-ink-200/90 bg-parchment-50/95 shadow-sm backdrop-blur-md">
@@ -56,86 +25,61 @@ export function Header({
           </div>
         </div>
 
-        <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:gap-3">
-          {exportStatus === "success" && exportUrl && (
-            <a
-              href={exportUrl}
-              download={defaultFilename}
-              className="animate-fade-up inline-flex items-center justify-center gap-2 rounded-lg border border-jade/30 bg-jade/5 px-3 py-2 text-sm font-medium text-jade transition-colors hover:bg-jade/10"
-            >
-              <CheckCircle2 className="h-4 w-4 shrink-0" aria-hidden />
-              {successLabel}
-            </a>
-          )}
-
-          {exportStatus === "error" && (
-            <div
-              className="animate-fade-up flex items-start gap-2 rounded-lg border border-red-200 bg-red-50/90 px-3 py-2 text-sm text-red-800"
-              role="status"
-            >
-              <AlertCircle
-                className="mt-0.5 h-4 w-4 shrink-0 text-red-600"
-                aria-hidden
-              />
-              <div>
-                <p className="font-medium">Falha ao exportar</p>
-                <p className="text-xs font-normal text-red-700/90">
-                  Confira worker (PDF), Supabase e tente novamente. Word é
-                  gerado no servidor Next.
-                </p>
-              </div>
-            </div>
-          )}
-
-          <div className="flex flex-wrap items-center gap-2">
-            <button
-              type="button"
-              onClick={onExportPdf}
-              disabled={busy}
-              className={cn(
-                "inline-flex items-center justify-center gap-2 rounded-xl px-4 py-2.5 text-sm font-semibold shadow-md transition-all duration-200",
-                "bg-ink-950 text-parchment hover:bg-ink-900 hover:shadow-lg",
-                "active:scale-[0.98]",
-                "disabled:cursor-not-allowed disabled:opacity-60 disabled:active:scale-100 disabled:shadow-sm"
+        <div className="flex items-center justify-end gap-3">
+          {status === "loading" ? (
+            <Loader2 className="h-5 w-5 animate-spin text-ink-400" aria-hidden />
+          ) : session?.user ? (
+            <>
+              {session.github?.connected && (
+                <Link
+                  href="/repos"
+                  className={cn(
+                    "inline-flex items-center gap-1.5 rounded-xl border border-transparent px-3 py-2 text-sm font-medium text-ink-700",
+                    "hover:border-ink-200 hover:bg-ink-50"
+                  )}
+                >
+                  <FolderGit2 className="h-4 w-4 shrink-0" aria-hidden />
+                  <span className="max-w-[100px] truncate sm:max-w-none">
+                    Repositórios
+                  </span>
+                </Link>
               )}
-            >
-              {busyPdf ? (
-                <>
-                  <Loader2 className="h-4 w-4 animate-spin" aria-hidden />
-                  Gerando PDF…
-                </>
-              ) : (
-                <>
-                  <FileDown className="h-4 w-4" aria-hidden />
-                  Exportar PDF
-                </>
-              )}
-            </button>
-
-            <button
-              type="button"
-              onClick={onExportDocx}
-              disabled={busy}
+              <span
+                className="hidden max-w-[180px] truncate text-sm text-ink-600 sm:inline"
+                title={
+                  session.user.email ??
+                  session.user.name ??
+                  undefined
+                }
+              >
+                {session.user.email ?? session.user.name ?? "Conta"}
+              </span>
+              <button
+                type="button"
+                onClick={() => signOut({ callbackUrl: "/" })}
+                className={cn(
+                  "inline-flex items-center justify-center gap-2 rounded-xl border-2 border-ink-200 bg-white px-4 py-2.5 text-sm font-semibold text-ink-900 shadow-sm transition-all duration-200",
+                  "hover:border-ink-300 hover:bg-ink-50",
+                  "active:scale-[0.98]"
+                )}
+              >
+                <LogOut className="h-4 w-4" aria-hidden />
+                Sair
+              </button>
+            </>
+          ) : (
+            <Link
+              href="/login"
               className={cn(
                 "inline-flex items-center justify-center gap-2 rounded-xl border-2 border-ink-200 bg-white px-4 py-2.5 text-sm font-semibold text-ink-900 shadow-sm transition-all duration-200",
                 "hover:border-ink-300 hover:bg-ink-50",
-                "active:scale-[0.98]",
-                "disabled:cursor-not-allowed disabled:opacity-60 disabled:active:scale-100"
+                "active:scale-[0.98]"
               )}
             >
-              {busyDocx ? (
-                <>
-                  <Loader2 className="h-4 w-4 animate-spin" aria-hidden />
-                  Gerando Word…
-                </>
-              ) : (
-                <>
-                  <FileType2 className="h-4 w-4" aria-hidden />
-                  Exportar Word
-                </>
-              )}
-            </button>
-          </div>
+              <LogIn className="h-4 w-4" aria-hidden />
+              Login
+            </Link>
+          )}
         </div>
       </div>
     </header>

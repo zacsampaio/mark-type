@@ -16,27 +16,27 @@ export const TEMPLATE_OPTIONS: {
   {
     value: "professional",
     label: "Profissional",
-    description: "Serifado formal, capa acadêmica",
+    description: "Formal tecnico com estrutura academica",
   },
   {
     value: "modern",
     label: "Moderno",
-    description: "Visual limpo com destaque em hero",
+    description: "Visual limpo para leitura digital",
   },
   {
     value: "saas",
-    label: "SaaS",
-    description: "Estilo produto / documentação de software",
+    label: "Simples",
+    description: "Modelo cru, preto e branco, pronto para editar",
   },
   {
     value: "document",
     label: "Documento",
-    description: "Mínimo para leitura e impressão",
+    description: "Impressão simples com tipografia clássica",
   },
   {
     value: "compliance",
     label: "Compliance",
-    description: "Formal, com avisos e estrutura regulatória",
+    description: "Estrutura regulatória e auditoria",
   },
 ];
 

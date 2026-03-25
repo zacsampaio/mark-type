@@ -61,7 +61,8 @@
   }
 
   .doc-preview.template-professional {
-    font-family: 'Playfair Display', Georgia, serif;
+    font-family: 'DM Sans', system-ui, sans-serif;
+    color: #111;
   }
 
   .doc-preview h1 {
@@ -70,28 +71,52 @@
   }
 
   .doc-preview.template-professional h1 {
-    @apply text-4xl border-b-2 border-ink-950 pb-3;
-    font-family: 'Playfair Display', serif;
+    @apply text-4xl border-0 pb-0 font-body;
+  }
+  .doc-preview.template-professional p {
+    text-align: justify;
+    text-indent: 1.25cm;
+    line-height: 1.5;
+  }
+  .doc-preview.template-professional h2 {
+    text-transform: uppercase;
+    letter-spacing: 0.02em;
+    border-left: 0;
+    border-bottom: 1px solid #d1cabe;
+    padding-left: 0;
+    padding-bottom: 0.2rem;
+  }
+  .doc-preview.template-professional ul,
+  .doc-preview.template-professional ol {
+    padding-left: 1.8rem;
+  }
+  .doc-preview.template-professional blockquote {
+    background: transparent;
+    border-left: 2px solid #7c6f5c;
+    color: #40372d;
   }
 
   .doc-preview.template-modern h1 {
-    @apply text-3xl font-body font-semibold;
-    background: linear-gradient(135deg, #0f0e0c, #6e5f4e);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    background-clip: text;
+    @apply text-3xl font-display font-semibold text-ink-950;
+  }
+  .doc-preview.template-modern {
+    font-family: 'Playfair Display', Georgia, serif;
   }
 
   .doc-preview h2 {
     @apply text-xl font-semibold mb-2 mt-6;
   }
 
-  .doc-preview.template-professional h2 {
-    @apply text-2xl border-l-4 border-accent pl-3 font-display;
-  }
-
   .doc-preview.template-modern h2 {
     @apply text-xl font-body font-semibold text-jade;
+  }
+  .doc-preview.template-modern p { text-indent: 0; }
+  .doc-preview.template-modern h2 {
+    border-left: 3px solid #2d6a4f;
+    padding-left: 0.6rem;
+  }
+  .doc-preview.template-modern table th {
+    background: #2d6a4f;
   }
 
   .doc-preview h3 {
@@ -159,39 +184,55 @@
     @apply bg-parchment-200;
   }
 
-  /* Modern template badges/highlights */
-  .doc-preview.template-modern .feature-badge {
-    @apply inline-flex items-center gap-1.5 bg-jade/10 text-jade px-2.5 py-1 rounded-full text-xs font-medium;
-  }
-
-  /* Professional template cover */
-  .doc-cover {
-    @apply text-center py-12 mb-8 border-b-2 border-ink-950;
-  }
-
-  .doc-cover.template-modern {
-    @apply bg-gradient-to-br from-ink-950 to-ink-700 text-parchment rounded-xl mb-8 px-8;
-  }
-
   /* SaaS */
   .doc-preview.template-saas {
-    font-family: "Plus Jakarta Sans", "DM Sans", system-ui, sans-serif;
-    color: #0f172a;
+    font-family: Arial, "Helvetica Neue", sans-serif;
+    color: #111;
   }
   .doc-preview.template-saas h1 {
-    @apply text-3xl font-bold tracking-tight text-slate-900;
+    @apply text-3xl font-bold text-neutral-950;
   }
   .doc-preview.template-saas h2 {
-    @apply text-xl font-semibold text-blue-700 border-b border-slate-200 pb-1 mt-8 mb-2;
+    @apply mt-8 mb-2 text-xl font-bold text-neutral-900;
   }
   .doc-preview.template-saas h3 {
-    @apply text-lg font-semibold text-slate-700 mt-5;
+    @apply mt-5 text-lg font-semibold text-neutral-800;
   }
   .doc-preview.template-saas blockquote {
-    @apply border-l-4 border-blue-500 bg-blue-50/80 rounded-r-lg py-3 pl-4 not-italic text-slate-700;
+    @apply border-l-2 border-neutral-700 bg-transparent py-2 pl-4 not-italic text-neutral-700;
   }
   .doc-preview.template-saas a {
-    @apply text-blue-600;
+    @apply text-neutral-900 underline;
+  }
+  .doc-preview.template-saas p { text-indent: 0; }
+  .doc-preview.template-saas code {
+    background: transparent;
+    color: #111;
+    border: 0;
+    padding: 0;
+    border-radius: 0;
+  }
+  .doc-preview.template-saas pre {
+    background: transparent;
+    border: 0;
+    color: #111;
+    padding: 0 0 0 0.85rem;
+    margin: 0.35rem 0 0.9rem;
+    border-left: 2px solid #111;
+  }
+  .doc-preview.template-saas pre code {
+    color: #111;
+    background: transparent;
+    padding: 0;
+    font-size: 0.92rem;
+    line-height: 1.5;
+  }
+  .doc-preview.template-saas th {
+    background: #111;
+    color: #fff;
+  }
+  .doc-preview.template-saas tr:nth-child(even) td {
+    background: #fff;
   }
 
   /* Documento (impressão simples) */
@@ -204,6 +245,12 @@
   }
   .doc-preview.template-document h2 {
     @apply text-lg font-semibold text-neutral-900 mt-6;
+    border-bottom: 1px solid #d4d4d4;
+    padding-bottom: 0.2rem;
+  }
+  .doc-preview.template-document p {
+    text-indent: 1.1cm;
+    line-height: 1.5;
   }
   .doc-preview.template-document pre {
     @apply bg-neutral-100 text-neutral-900 border border-neutral-200;
@@ -219,8 +266,19 @@
   .doc-preview.template-compliance h2 {
     @apply border border-neutral-800 bg-neutral-50 px-2 py-1.5 text-base font-bold;
   }
+  .doc-preview.template-compliance p {
+    text-indent: 0;
+  }
+  .doc-preview.template-compliance h3 {
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+    font-size: 0.9rem;
+  }
   .doc-preview.template-compliance blockquote {
     @apply border border-dashed border-neutral-500 bg-amber-50/50 not-italic text-sm text-neutral-800;
+  }
+  .doc-preview.template-compliance table th {
+    background: #111827;
   }
 }
 

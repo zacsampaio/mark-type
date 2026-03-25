@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useCallback } from "react";
+import { useState, useCallback, useEffect } from "react";
 import {
   Github,
   FileText,
@@ -14,6 +14,11 @@ import { cn } from "@/lib/utils";
 interface EditorPanelProps {
   markdown: string;
   onMarkdownChange: (value: string) => void;
+  /** Preenchido ao voltar da página de repositórios com import pendente */
+  importedRepoName?: string | null;
+  /** Incrementa a cada novo import (permite reimportar o mesmo repo) */
+  importToken?: number;
+  onImportedRepoConsumed?: () => void;
 }
 
 type Tab = "paste" | "github";
@@ -21,12 +26,22 @@ type Tab = "paste" | "github";
 export function EditorPanel({
   markdown,
   onMarkdownChange,
+  importedRepoName,
+  importToken = 0,
+  onImportedRepoConsumed,
 }: EditorPanelProps) {
   const [activeTab, setActiveTab] = useState<Tab>("paste");
   const [githubUrl, setGithubUrl] = useState("");
   const [isFetching, setIsFetching] = useState(false);
   const [githubError, setGithubError] = useState("");
   const [repoName, setRepoName] = useState("");
+
+  useEffect(() => {
+    if (!importedRepoName || importToken === 0) return;
+    setRepoName(importedRepoName);
+    setActiveTab("paste");
+    onImportedRepoConsumed?.();
+  }, [importedRepoName, importToken, onImportedRepoConsumed]);
 
   const handleImportGithub = useCallback(async () => {
     if (!githubUrl.trim()) return;
