@@ -1,0 +1,21 @@
+{
+  "name": "doccraft",
+  "version": "0.1.0",
+  "private": true,
+  "workspaces": [
+    "frontend",
+    "backend/worker",
+    "packages/*"
+  ],
+  "scripts": {
+    "dev": "concurrently \"npm run dev --workspace=@doccraft/web\" \"npm run dev --workspace=@doccraft/worker\"",
+    "build": "npm run build --workspace=@doccraft/markdown && npm run build --workspace=@doccraft/templates && npm run build --workspace=@doccraft/document-styles && npm run build --workspace=@doccraft/web && npm run build --workspace=@doccraft/worker",
+    "dev:web": "npm run dev --workspace=@doccraft/web",
+    "dev:worker": "npm run dev --workspace=@doccraft/worker",
+    "build:web": "npm run build --workspace=@doccraft/web",
+    "build:worker": "npm run build --workspace=@doccraft/worker"
+  },
+  "devDependencies": {
+    "concurrently": "^8.2.2"
+  }
+}
