@@ -21,6 +21,8 @@ interface PreviewPanelProps {
   onExportPdf: () => void;
   exportingPdf: boolean;
   exportStatus: "idle" | "loading" | "success" | "error";
+  /** Mensagem vinda da API ou do cliente quando exportStatus === "error" */
+  exportErrorDetail?: string | null;
 }
 
 export function PreviewPanel({
@@ -30,6 +32,7 @@ export function PreviewPanel({
   onExportPdf,
   exportingPdf,
   exportStatus,
+  exportErrorDetail,
 }: PreviewPanelProps) {
   const { html, parsed } = useMemo(() => {
     const parsed = parseMarkdown(markdown);
@@ -92,7 +95,9 @@ export function PreviewPanel({
         )}
         {exportStatus === "error" && (
           <p className="mt-2 text-xs text-red-700" role="alert">
-            Falha ao exportar. Confira Supabase/servidor e tente novamente.
+            {exportErrorDetail?.trim()
+              ? exportErrorDetail
+              : "Falha ao exportar. Confira Supabase/servidor e tente novamente."}
           </p>
         )}
       </div>

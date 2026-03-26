@@ -264,6 +264,6 @@ Issues e pull requests são bem-vindos. Mantém o estilo existente e atualiza es
 
 ## Licença
 
-**MIT** — vê o ficheiro `LICENSE` no repositório, se existir.
+**MIT** — vê o ficheiro `LICENSE` no repositório.
 
 © MarkType Contributors

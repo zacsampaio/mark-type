@@ -61,7 +61,7 @@ export async function persistExportRecord({
 }: PersistExportInput): Promise<void> {
   const { owner_sub, user_id } = columnsFromSessionSub(sessionSub);
   const supabase = createServerSupabaseClient();
-  await supabase.from("documents").insert({
+  const { error } = await supabase.from("documents").insert({
     title,
     markdown,
     template,
@@ -69,6 +69,9 @@ export async function persistExportRecord({
     user_id,
     owner_sub,
   });
+  if (error) {
+    console.error("[documents] insert falhou (PDF já pode estar no Storage):", error.message);
+  }
 }
 
 export function toDataUrl(contentType: string, buffer: Buffer): string {

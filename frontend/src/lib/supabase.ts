@@ -8,7 +8,16 @@ export const supabase = createClient(supabaseUrl, supabaseAnonKey);
 
 // Server-side client (uses service role key for storage writes)
 export function createServerSupabaseClient() {
-  const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY ?? supabaseAnonKey;
+  const hasServiceRole = Boolean(
+    process.env.SUPABASE_SERVICE_ROLE_KEY?.trim()
+  );
+  const serviceKey =
+    process.env.SUPABASE_SERVICE_ROLE_KEY?.trim() ?? supabaseAnonKey;
+  if (!hasServiceRole && process.env.NODE_ENV === "development") {
+    console.warn(
+      "[supabase] SUPABASE_SERVICE_ROLE_KEY ausente — o upload para o bucket «pdfs» costuma falhar por RLS. Copia a service_role do dashboard ou de `supabase status`."
+    );
+  }
   return createClient(supabaseUrl, serviceKey);
 }
 

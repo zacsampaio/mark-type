@@ -74,6 +74,9 @@ export default function Home() {
   const [exportStatus, setExportStatus] = useState<
     "idle" | "loading" | "success" | "error"
   >("idle");
+  const [exportErrorDetail, setExportErrorDetail] = useState<string | null>(
+    null
+  );
   const [mobileTab, setMobileTab] = useState<WorkspaceMobileTab>("edit");
 
   useEffect(() => {
@@ -105,38 +108,73 @@ export default function Home() {
       return;
     }
 
-    const fileRes = await fetch(url);
-    if (!fileRes.ok) {
-      throw new Error("failed to download generated file");
+    try {
+      const fileRes = await fetch(url, { mode: "cors" });
+      if (!fileRes.ok) {
+        throw new Error("fetch not ok");
+      }
+      const blob = await fileRes.blob();
+      const objectUrl = URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.href = objectUrl;
+      link.download = filename;
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      URL.revokeObjectURL(objectUrl);
+    } catch {
+      const link = document.createElement("a");
+      link.href = url;
+      link.target = "_blank";
+      link.rel = "noopener noreferrer";
+      link.download = filename;
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
     }
-    const blob = await fileRes.blob();
-    const objectUrl = URL.createObjectURL(blob);
-    const link = document.createElement("a");
-    link.href = objectUrl;
-    link.download = filename;
-    document.body.appendChild(link);
-    link.click();
-    link.remove();
-    URL.revokeObjectURL(objectUrl);
   }, []);
 
   const handleExportPdf = useCallback(async () => {
     setExportingPdf(true);
     setExportStatus("loading");
+    setExportErrorDetail(null);
     try {
       const res = await fetch("/api/generate-pdf", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ markdown, template }),
       });
-      const data = await res.json();
+      let data: { url?: string; error?: string; note?: string } = {};
+      try {
+        data = await res.json();
+      } catch {
+        setExportErrorDetail("Resposta inválida do servidor.");
+        setExportStatus("error");
+        return;
+      }
+      if (!res.ok || typeof data.error === "string") {
+        setExportErrorDetail(
+          typeof data.error === "string"
+            ? data.error
+            : `Erro HTTP ${res.status}. Confira o terminal do Next.js.`
+        );
+        setExportStatus("error");
+        return;
+      }
       if (data.url) {
         await triggerDownload(data.url, "documento.pdf");
         setExportStatus("success");
+        if (data.note) {
+          console.info("[export]", data.note);
+        }
       } else {
+        setExportErrorDetail(
+          "O servidor não devolveu URL do PDF. Confira Supabase e variáveis de ambiente."
+        );
         setExportStatus("error");
       }
     } catch {
+      setExportErrorDetail("Erro de rede ou ao iniciar o download.");
       setExportStatus("error");
     } finally {
       setExportingPdf(false);
@@ -185,6 +223,7 @@ export default function Home() {
                 onExportPdf={handleExportPdf}
                 exportingPdf={exportingPdf}
                 exportStatus={exportStatus}
+                exportErrorDetail={exportErrorDetail}
               />
             </section>
           </div>

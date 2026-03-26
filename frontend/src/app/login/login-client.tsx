@@ -325,7 +325,8 @@ export function LoginClient() {
           </form>
 
           <p className="mt-6 text-center text-xs text-ink-400">
-            E-mail via Supabase · GitHub via OAuth (Auth.js).
+            E-mail via Supabase · GitHub via Auth.js (o servidor cria/atualiza o
+            utilizador em Auth com a service role, se estiver configurada).
           </p>
         </div>
       </main>

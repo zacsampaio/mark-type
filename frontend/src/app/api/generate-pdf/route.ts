@@ -9,6 +9,12 @@ import { persistExportRecord, toDataUrl, uploadExportFile } from "@/lib/exports"
 export const runtime = "nodejs";
 export const maxDuration = 60;
 
+/** Evita timeouts quando há imagens externas lentas ou ligações que nunca ficam «idle». */
+const PDF_CONTENT_WAIT: "load" = "load";
+const PDF_CONTENT_TIMEOUT_MS = 45_000;
+
+const MAX_INLINE_PDF_BYTES = 2_500_000;
+
 async function renderPdfFromHtml(html: string): Promise<Buffer> {
   const isVercel = Boolean(process.env.VERCEL);
   if (isVercel) {
@@ -23,7 +29,10 @@ async function renderPdfFromHtml(html: string): Promise<Buffer> {
     });
     try {
       const page = await browser.newPage();
-      await page.setContent(html, { waitUntil: "networkidle0" });
+      await page.setContent(html, {
+        waitUntil: PDF_CONTENT_WAIT,
+        timeout: PDF_CONTENT_TIMEOUT_MS,
+      });
       const pdf = await page.pdf({
         format: "A4",
         printBackground: true,
@@ -38,11 +47,18 @@ async function renderPdfFromHtml(html: string): Promise<Buffer> {
   const puppeteer = await import("puppeteer");
   const browser = await puppeteer.default.launch({
     headless: true,
-    args: ["--no-sandbox", "--disable-setuid-sandbox"],
+    args: [
+      "--no-sandbox",
+      "--disable-setuid-sandbox",
+      "--disable-dev-shm-usage",
+    ],
   });
   try {
     const page = await browser.newPage();
-    await page.setContent(html, { waitUntil: "networkidle0" });
+    await page.setContent(html, {
+      waitUntil: PDF_CONTENT_WAIT,
+      timeout: PDF_CONTENT_TIMEOUT_MS,
+    });
     const pdf = await page.pdf({
       format: "A4",
       printBackground: true,
@@ -82,6 +98,16 @@ export async function POST(req: NextRequest) {
 
     if (!publicUrl) {
       console.error("[generate-pdf] Supabase upload error:", errorMessage);
+      if (pdfBuffer.length > MAX_INLINE_PDF_BYTES) {
+        return NextResponse.json(
+          {
+            error:
+              "Upload no Supabase falhou e o PDF é grande demais para enviar sem Storage. Confirma SUPABASE_SERVICE_ROLE_KEY, o bucket «pdfs» e as migrations. Detalhe: " +
+              (errorMessage ?? "desconhecido"),
+          },
+          { status: 503 }
+        );
+      }
       return NextResponse.json({
         url: toDataUrl("application/pdf", pdfBuffer),
         note: "Upload no Supabase falhou; retornando arquivo direto em base64.",
@@ -105,6 +131,11 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ url: publicUrl });
   } catch (err) {
     console.error("[generate-pdf]", err);
-    return NextResponse.json({ error: "PDF generation failed" }, { status: 500 });
+    const message =
+      err instanceof Error ? err.message : "PDF generation failed";
+    return NextResponse.json(
+      { error: message.includes("Timeout") ? "Timeout ao gerar o PDF (conteúdo ou rede). Tenta reduzir imagens externas." : "PDF generation failed" },
+      { status: 500 }
+    );
   }
 }

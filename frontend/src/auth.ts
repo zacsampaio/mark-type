@@ -2,6 +2,7 @@ import NextAuth from "next-auth";
 import Credentials from "next-auth/providers/credentials";
 import GitHub from "next-auth/providers/github";
 import { createClient } from "@supabase/supabase-js";
+import { syncGithubUserToSupabase } from "@/lib/sync-github-user-to-supabase";
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL ?? "";
 const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ?? "";
@@ -35,7 +36,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
     GitHub({
       authorization: {
         params: {
-          scope: "read:user repo",
+          scope: "read:user user:email repo",
         },
       },
     }),
@@ -81,6 +82,16 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
     }),
   ],
   callbacks: {
+    async signIn({ user, account, profile }) {
+      if (account?.provider === "github" && account.providerAccountId) {
+        await syncGithubUserToSupabase({
+          user,
+          profile,
+          githubAccountId: account.providerAccountId,
+        });
+      }
+      return true;
+    },
     async jwt({ token, user, account }) {
       if (account?.provider === "github" && account.access_token) {
         token.githubAccessToken = account.access_token;
