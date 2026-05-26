@@ -8,9 +8,16 @@ import type { Template } from "@/lib/types";
 interface StatusBarProps {
   markdown: string;
   template: Template;
+  previewPage?: number;
+  previewPageCount?: number;
 }
 
-export function StatusBar({ markdown, template }: StatusBarProps) {
+export function StatusBar({
+  markdown,
+  template,
+  previewPage = 1,
+  previewPageCount = 1,
+}: StatusBarProps) {
   const stats = useMemo(() => {
     const words = wordCount(markdown);
     const readTime = estimateReadTime(markdown);
@@ -52,6 +59,11 @@ export function StatusBar({ markdown, template }: StatusBarProps) {
           </span>
           <Sep />
           <span className="text-ink-400">Markdown</span>
+          <Sep />
+          <Stat
+            label="Folha"
+            value={`${previewPage} / ${previewPageCount}`}
+          />
         </div>
       </div>
     </div>

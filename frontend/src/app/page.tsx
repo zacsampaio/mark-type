@@ -16,6 +16,7 @@ import { cn } from "@/lib/utils";
 import type { Template } from "@/lib/types";
 import {
   DEFAULT_DOCUMENT_CUSTOMIZATION,
+  MANUAL_TABLE_CUSTOMIZATION,
   type DocumentCustomization,
   type ExportFormat,
 } from "@/lib/document-customization";
@@ -92,6 +93,18 @@ export default function Home() {
   );
   const [mobileTab, setMobileTab] = useState<WorkspaceMobileTab>("edit");
   const [editorTab, setEditorTab] = useState<EditorTab>("paste");
+  const [previewPage, setPreviewPage] = useState(1);
+  const [previewPageCount, setPreviewPageCount] = useState(1);
+
+  const handleTemplateChange = useCallback((next: Template) => {
+    setTemplate(next);
+    if (next === "manual") {
+      setCustomization((current) => ({
+        ...current,
+        ...MANUAL_TABLE_CUSTOMIZATION,
+      }));
+    }
+  }, []);
 
   useEffect(() => {
     if (pathname !== "/") return;
@@ -215,7 +228,7 @@ export default function Home() {
             editorTab={editorTab}
             onEditorTabChange={setEditorTab}
             template={template}
-            onTemplateChange={setTemplate}
+            onTemplateChange={handleTemplateChange}
             customization={customization}
             onCustomizationChange={setCustomization}
             onExport={handleExport}
@@ -253,7 +266,7 @@ export default function Home() {
               <PreviewPanel
                 markdown={markdown}
                 template={template}
-                onTemplateChange={setTemplate}
+                onTemplateChange={handleTemplateChange}
                 customization={customization}
                 onCustomizationChange={setCustomization}
                 onExport={handleExport}
@@ -261,11 +274,19 @@ export default function Home() {
                 lastExportFormat={lastExportFormat}
                 exportStatus={exportStatus}
                 exportErrorDetail={exportErrorDetail}
+                previewPage={previewPage}
+                onPreviewPageChange={setPreviewPage}
+                onPreviewPageCountChange={setPreviewPageCount}
               />
             </section>
           </div>
 
-          <StatusBar markdown={markdown} template={template} />
+          <StatusBar
+            markdown={markdown}
+            template={template}
+            previewPage={previewPage}
+            previewPageCount={previewPageCount}
+          />
         </div>
       </div>
 

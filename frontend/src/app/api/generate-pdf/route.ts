@@ -11,6 +11,7 @@ import type { Template } from "@/lib/types";
 import { persistExportRecord, toDataUrl, uploadExportFile } from "@/lib/exports";
 import { userFacingPdfErrorMessage } from "@/lib/pdf-export-errors";
 import { resolveSparticuzChromiumBinDir } from "@/lib/resolve-sparticuz-chromium-bin";
+import { PDF_PAGE_MARGINS } from "@/lib/preview-page-layout";
 
 export const runtime = "nodejs";
 export const maxDuration = 60;
@@ -43,7 +44,7 @@ async function renderPdfFromHtml(html: string): Promise<Buffer> {
       const pdf = await page.pdf({
         format: "A4",
         printBackground: true,
-        margin: { top: "24mm", right: "20mm", bottom: "24mm", left: "20mm" },
+        margin: { ...PDF_PAGE_MARGINS },
       });
       return Buffer.from(pdf);
     } finally {
@@ -72,7 +73,7 @@ async function renderPdfFromHtml(html: string): Promise<Buffer> {
     const pdf = await page.pdf({
       format: "A4",
       printBackground: true,
-      margin: { top: "24mm", right: "20mm", bottom: "24mm", left: "20mm" },
+      margin: { ...PDF_PAGE_MARGINS },
     });
     return Buffer.from(pdf);
   } finally {

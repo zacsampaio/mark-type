@@ -46,7 +46,11 @@ export async function POST(req: NextRequest) {
       customization,
     });
 
-    const docxBodyHtml = await prepareHtmlForDocx(fullHtml, customization);
+    const docxBodyHtml = await prepareHtmlForDocx(
+      fullHtml,
+      customization,
+      template
+    );
     const wordFont = wordFontFromStack(customization.fontFamily);
 
     const HTMLtoDOCX = (await import("html-to-docx")).default;

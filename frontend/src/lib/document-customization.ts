@@ -7,6 +7,20 @@ import {
 export type { DocumentCustomization };
 export { DEFAULT_DOCUMENT_CUSTOMIZATION, mergeCustomization };
 
+/** Cores de tabela para o modelo Manual (preto e branco). */
+export const MANUAL_TABLE_CUSTOMIZATION: Pick<
+  DocumentCustomization,
+  | "tableHeaderBackground"
+  | "tableHeaderColor"
+  | "tableRowAltBackground"
+  | "tableBorderColor"
+> = {
+  tableHeaderBackground: "#000000",
+  tableHeaderColor: "#ffffff",
+  tableRowAltBackground: "#ffffff",
+  tableBorderColor: "#000000",
+};
+
 export const FONT_FAMILY_OPTIONS = [
   {
     id: "serif",

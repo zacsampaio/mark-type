@@ -24,9 +24,45 @@ export function mergeCustomization(
 
 /** CSS injetado após o template (PDF/DOCX). */
 export function buildCustomizationOverrideCss(
-  customization?: Partial<DocumentCustomization> | null
+  customization?: Partial<DocumentCustomization> | null,
+  template?: string
 ): string {
   const c = mergeCustomization(customization);
+
+  if (template === "manual") {
+    return `
+  body {
+    font-family: ${c.fontFamily} !important;
+    color: ${c.bodyColor} !important;
+  }
+  h1, h2, h3, h4, h5, h6, p, li, blockquote {
+    color: inherit;
+  }
+  table {
+    width: auto !important;
+    max-width: 100%;
+    margin-left: auto !important;
+    margin-right: auto !important;
+  }
+  th {
+    background: ${c.tableHeaderBackground} !important;
+    color: ${c.tableHeaderColor} !important;
+    border: 1px solid ${c.tableBorderColor} !important;
+    text-align: center !important;
+    vertical-align: middle !important;
+  }
+  td {
+    border: 1px solid ${c.tableBorderColor} !important;
+    background: #fff !important;
+    text-align: center !important;
+    vertical-align: middle !important;
+  }
+  tr:nth-child(even) td {
+    background: #fff !important;
+  }
+`;
+  }
+
   return `
   body {
     font-family: ${c.fontFamily} !important;

@@ -214,11 +214,29 @@ function templateSpecificCss(template: string): string {
   }
   ul, ol { margin-bottom: 0.65rem; }
   li { margin-bottom: 0.15rem; }
-  table { border: none; margin: 0.75rem 0 1.25rem; font-size: 10.5pt; }
-  th, td { border: none; padding: 0.15rem 0.35rem; vertical-align: top; }
-  th { background: transparent; color: #000; font-weight: 400; }
-  tr:nth-child(even) td { background: transparent; }
-  td:last-child { text-align: right; white-space: nowrap; }
+  table {
+    width: auto !important;
+    max-width: 100%;
+    margin: 0.75rem auto 1.25rem !important;
+    border-collapse: collapse;
+    font-size: 10.5pt;
+  }
+  th, td {
+    border: 1px solid #000 !important;
+    padding: 0.25rem 0.45rem;
+    text-align: center !important;
+    vertical-align: middle !important;
+  }
+  th {
+    background: #000 !important;
+    color: #fff !important;
+    font-weight: 700;
+  }
+  td {
+    background: #fff !important;
+    color: #000 !important;
+  }
+  tr:nth-child(even) td { background: #fff !important; }
   pre {
     background: #fff;
     color: #000;
@@ -364,7 +382,10 @@ export function buildStyledDocumentHtml(
   options?: BuildStyledDocumentOptions
 ): string {
   const css = templateSpecificCss(template);
-  const customCss = buildCustomizationOverrideCss(options?.customization);
+  const customCss = buildCustomizationOverrideCss(
+    options?.customization,
+    template
+  );
   const banner = complianceBannerHtml(template);
   const skipFonts = options?.skipRemoteFonts === true;
   const fontLinks = skipFonts

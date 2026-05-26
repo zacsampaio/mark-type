@@ -4,6 +4,7 @@ import path from "path";
 import juice from "juice";
 import * as cheerio from "cheerio";
 import type { DocumentCustomization } from "@/lib/document-customization";
+import type { Template } from "@/lib/types";
 
 const MIME: Record<string, string> = {
   ".png": "image/png",
@@ -13,16 +14,7 @@ const MIME: Record<string, string> = {
   ".webp": "image/webp",
 };
 
-/** html-to-docx exige header/footer/gutter; senão grava "undefined" e o Word recusa o ficheiro. */
-export const DOCX_PAGE_MARGINS = {
-  top: 1134,
-  right: 960,
-  bottom: 1134,
-  left: 960,
-  header: 720,
-  footer: 720,
-  gutter: 0,
-} as const;
+export { DOCX_PAGE_MARGINS } from "@/lib/preview-page-layout";
 
 const MAX_IMAGE_BYTES = 1_500_000;
 
@@ -152,8 +144,10 @@ function sanitizeForWord($: cheerio.CheerioAPI): void {
 
 function strengthenWordMarkup(
   bodyHtml: string,
-  customization: DocumentCustomization
+  customization: DocumentCustomization,
+  template: Template
 ): string {
+  const isManual = template === "manual";
   const $ = cheerio.load(`<div id="docx-root">${bodyHtml}</div>`, {
     xmlMode: false,
   });
@@ -198,13 +192,17 @@ function strengthenWordMarkup(
   });
 
   $("#docx-root table").each((_, table) => {
-    $(table).attr("style", "width:100%;border-collapse:collapse;margin:0 0 10pt 0;");
+    const tableStyle = isManual
+      ? "width:auto;border-collapse:collapse;margin:0 auto 10pt auto;"
+      : "width:100%;border-collapse:collapse;margin:0 0 10pt 0;";
+    $(table).attr("style", tableStyle);
+    const cellAlign = isManual ? "center" : "left";
     $(table)
       .find("th")
       .attr(
         "style",
         cleanStyle(
-          `background-color:${customization.tableHeaderBackground};color:${customization.tableHeaderColor};padding:6pt 8pt;font-weight:bold;font-size:10pt;border:1px solid ${customization.tableBorderColor};text-align:left;`
+          `background-color:${customization.tableHeaderBackground};color:${customization.tableHeaderColor};padding:6pt 8pt;font-weight:bold;font-size:10pt;border:1px solid ${customization.tableBorderColor};text-align:${cellAlign};vertical-align:middle;`
         )
       );
     $(table)
@@ -212,7 +210,7 @@ function strengthenWordMarkup(
       .attr(
         "style",
         cleanStyle(
-          `padding:5pt 8pt;font-size:10pt;border:1px solid ${customization.tableBorderColor};vertical-align:top;`
+          `padding:5pt 8pt;font-size:10pt;border:1px solid ${customization.tableBorderColor};text-align:${cellAlign};vertical-align:middle;`
         )
       );
     $(table)
@@ -278,7 +276,8 @@ function normalizeInlineParagraphs($: cheerio.CheerioAPI): void {
  */
 export async function prepareHtmlForDocx(
   fullHtml: string,
-  customization: DocumentCustomization
+  customization: DocumentCustomization,
+  template: Template
 ): Promise<string> {
   const inlined = juice(fullHtml, {
     removeStyleTags: true,
@@ -291,7 +290,7 @@ export async function prepareHtmlForDocx(
   let body = bodyMatch?.[1]?.trim() ?? inlined;
 
   body = await embedImagesAsDataUrls(body);
-  body = strengthenWordMarkup(body, customization);
+  body = strengthenWordMarkup(body, customization, template);
 
   return body;
 }

@@ -36,7 +36,12 @@ export async function generateWithPuppeteer(
 
     const pdfBuffer = await page.pdf({
       format: "A4",
-      margin: { top: "2.5cm", right: "2.5cm", bottom: "2.5cm", left: "2.5cm" },
+      margin: {
+        top: "2cm",
+        right: "1.69cm",
+        bottom: "2cm",
+        left: "1.69cm",
+      },
       printBackground: true,
       displayHeaderFooter: true,
       footerTemplate: `
