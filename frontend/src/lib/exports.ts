@@ -1,5 +1,10 @@
-import { createServerSupabaseClient } from "@/lib/supabase";
+import {
+  createServerSupabaseClient,
+  isSupabaseConfigured,
+} from "@/lib/supabase";
 import type { Template } from "@/lib/types";
+
+export { toDataUrl } from "@/lib/export-download";
 
 const EXPORT_BUCKET = "pdfs";
 
@@ -33,7 +38,17 @@ export async function uploadExportFile(
   buffer: Buffer,
   contentType: string
 ): Promise<{ publicUrl: string | null; errorMessage: string | null }> {
+  if (!isSupabaseConfigured()) {
+    return {
+      publicUrl: null,
+      errorMessage: "Supabase não configurado (exportação local apenas).",
+    };
+  }
+
   const supabase = createServerSupabaseClient();
+  if (!supabase) {
+    return { publicUrl: null, errorMessage: "Cliente Supabase indisponível." };
+  }
   const { error: uploadError } = await supabase.storage
     .from(EXPORT_BUCKET)
     .upload(filename, buffer, {
@@ -59,8 +74,12 @@ export async function persistExportRecord({
   title,
   sessionSub,
 }: PersistExportInput): Promise<void> {
+  if (!isSupabaseConfigured()) return;
+
   const { owner_sub, user_id } = columnsFromSessionSub(sessionSub);
   const supabase = createServerSupabaseClient();
+  if (!supabase) return;
+
   const { error } = await supabase.from("documents").insert({
     title,
     markdown,
@@ -72,8 +91,4 @@ export async function persistExportRecord({
   if (error) {
     console.error("[documents] insert falhou (PDF já pode estar no Storage):", error.message);
   }
-}
-
-export function toDataUrl(contentType: string, buffer: Buffer): string {
-  return `data:${contentType};base64,${buffer.toString("base64")}`;
 }

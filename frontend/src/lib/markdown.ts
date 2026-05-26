@@ -65,18 +65,52 @@ export function parseMarkdown(input: string): ParsedDocument {
   };
 }
 
+const CODE_BLOCK_PLACEHOLDER = "\uE000CODEBLOCK";
+
+/** Extrai cercas ``` linha a linha (evita emparelhar fecho + abertura consecutivos). */
+function extractCodeBlocks(markdown: string): {
+  markdown: string;
+  blocks: string[];
+} {
+  const lines = markdown.split("\n");
+  const blocks: string[] = [];
+  const out: string[] = [];
+  let i = 0;
+
+  while (i < lines.length) {
+    const open = lines[i].match(/^```(\w*)$/);
+    if (open) {
+      const lang = open[1];
+      const codeLines: string[] = [];
+      i++;
+      while (i < lines.length && !/^```$/.test(lines[i])) {
+        codeLines.push(lines[i]);
+        i++;
+      }
+      const cls = lang ? ` class="language-${lang}"` : "";
+      const html = `<pre><code${cls}>${escapeHtml(codeLines.join("\n"))}</code></pre>`;
+      blocks.push(html);
+      out.push(`${CODE_BLOCK_PLACEHOLDER}${blocks.length - 1}\uE001`);
+      if (i < lines.length) i++;
+      continue;
+    }
+    out.push(lines[i]);
+    i++;
+  }
+
+  return { markdown: out.join("\n"), blocks };
+}
+
+function restoreCodeBlocks(html: string, blocks: string[]): string {
+  return html.replace(
+    new RegExp(`${CODE_BLOCK_PLACEHOLDER}(\\d+)\uE001`, "g"),
+    (_, index) => blocks[Number(index)] ?? ""
+  );
+}
+
 export function markdownToHtml(markdown: string): string {
-  let html = markdown;
-
-  // Escape HTML (basic)
-  // Note: intentionally NOT escaping < > for inline HTML passthrough in preview
-  // For production, use DOMPurify
-
-  // Code blocks (must come before inline code)
-  html = html.replace(/```(\w*)\n([\s\S]*?)```/gm, (_, lang, code) => {
-    const cls = lang ? ` class="language-${lang}"` : "";
-    return `<pre><code${cls}>${escapeHtml(code.trim())}</code></pre>`;
-  });
+  const { markdown: withoutCode, blocks } = extractCodeBlocks(markdown);
+  let html = withoutCode;
 
   // Inline code
   html = html.replace(/`([^`]+)`/g, "<code>$1</code>");
@@ -121,15 +155,21 @@ export function markdownToHtml(markdown: string): string {
   // Paragraphs — wrap orphan lines
   html = html
     .split("\n\n")
-    .map((block) => {
-      const trimmed = block.trim();
-      if (!trimmed) return "";
-      if (trimmed.startsWith("<")) return trimmed;
-      return `<p>${trimmed.replace(/\n/g, " ")}</p>`;
-    })
+    .map((block) => wrapBlockAsParagraph(block))
     .join("\n\n");
 
-  return html;
+  return restoreCodeBlocks(html, blocks);
+}
+
+/** Blocos que já são elementos de bloco (não envolver em <p>). */
+const BLOCK_LEVEL_HTML =
+  /^<(h[1-6]|table|ul|ol|blockquote|pre|hr|div|p)(\s|>|\/)/i;
+
+function wrapBlockAsParagraph(block: string): string {
+  const trimmed = block.trim();
+  if (!trimmed) return "";
+  if (BLOCK_LEVEL_HTML.test(trimmed)) return trimmed;
+  return `<p>${trimmed.replace(/\n/g, " ")}</p>`;
 }
 
 function escapeHtml(str: string): string {

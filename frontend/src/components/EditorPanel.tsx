@@ -3,17 +3,22 @@
 import { useState, useCallback, useEffect } from "react";
 import {
   Github,
-  FileText,
   Loader2,
   AlertCircle,
   Sparkles,
   ArrowRight,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { EditorTabBar, type EditorTab } from "@/components/EditorTabBar";
+import { OrientacoesTab } from "@/components/OrientacoesTab";
 
 interface EditorPanelProps {
   markdown: string;
   onMarkdownChange: (value: string) => void;
+  activeTab: EditorTab;
+  onTabChange: (tab: EditorTab) => void;
+  /** Oculta abas no desktop (renderizadas em WorkspaceActionRow) */
+  hideTabBarOnDesktop?: boolean;
   /** Preenchido ao voltar da página de repositórios com import pendente */
   importedRepoName?: string | null;
   /** Incrementa a cada novo import (permite reimportar o mesmo repo) */
@@ -21,16 +26,16 @@ interface EditorPanelProps {
   onImportedRepoConsumed?: () => void;
 }
 
-type Tab = "paste" | "github";
-
 export function EditorPanel({
   markdown,
   onMarkdownChange,
+  activeTab,
+  onTabChange,
+  hideTabBarOnDesktop = false,
   importedRepoName,
   importToken = 0,
   onImportedRepoConsumed,
 }: EditorPanelProps) {
-  const [activeTab, setActiveTab] = useState<Tab>("paste");
   const [githubUrl, setGithubUrl] = useState("");
   const [isFetching, setIsFetching] = useState(false);
   const [githubError, setGithubError] = useState("");
@@ -39,9 +44,9 @@ export function EditorPanel({
   useEffect(() => {
     if (!importedRepoName || importToken === 0) return;
     setRepoName(importedRepoName);
-    setActiveTab("paste");
+    onTabChange("paste");
     onImportedRepoConsumed?.();
-  }, [importedRepoName, importToken, onImportedRepoConsumed]);
+  }, [importedRepoName, importToken, onImportedRepoConsumed, onTabChange]);
 
   const handleImportGithub = useCallback(async () => {
     if (!githubUrl.trim()) return;
@@ -59,7 +64,7 @@ export function EditorPanel({
       if (data.markdown) {
         onMarkdownChange(data.markdown);
         setRepoName(data.repoName ?? "");
-        setActiveTab("paste");
+        onTabChange("paste");
       } else {
         setGithubError(data.error ?? "Failed to fetch README");
       }
@@ -68,33 +73,28 @@ export function EditorPanel({
     } finally {
       setIsFetching(false);
     }
-  }, [githubUrl, onMarkdownChange]);
+  }, [githubUrl, onMarkdownChange, onTabChange]);
 
   return (
     <div className="flex h-full flex-col">
-      <div className="flex border-b border-ink-200/90 px-1 sm:px-2">
-        <TabButton
-          active={activeTab === "paste"}
-          onClick={() => setActiveTab("paste")}
-          icon={<FileText className="h-3.5 w-3.5" />}
-          label="Colar Markdown"
-        />
-        <TabButton
-          active={activeTab === "github"}
-          onClick={() => setActiveTab("github")}
-          icon={<Github className="h-3.5 w-3.5" />}
-          label="Importar do GitHub"
-        />
+      <div
+        className={cn(
+          "border-b border-ink-200/90",
+          hideTabBarOnDesktop && "lg:hidden"
+        )}
+      >
+        <EditorTabBar activeTab={activeTab} onTabChange={onTabChange} />
       </div>
 
       <div className="flex flex-1 flex-col overflow-hidden">
-        {activeTab === "paste" ? (
+        {activeTab === "paste" && (
           <PasteTab
             markdown={markdown}
             onChange={onMarkdownChange}
             repoName={repoName}
           />
-        ) : (
+        )}
+        {activeTab === "github" && (
           <GithubTab
             url={githubUrl}
             onUrlChange={setGithubUrl}
@@ -103,36 +103,9 @@ export function EditorPanel({
             error={githubError}
           />
         )}
+        {activeTab === "orientacoes" && <OrientacoesTab />}
       </div>
     </div>
-  );
-}
-
-function TabButton({
-  active,
-  onClick,
-  icon,
-  label,
-}: {
-  active: boolean;
-  onClick: () => void;
-  icon: React.ReactNode;
-  label: string;
-}) {
-  return (
-    <button
-      type="button"
-      onClick={onClick}
-      className={cn(
-        "flex flex-1 items-center justify-center gap-2 border-b-2 px-3 py-3 text-sm font-medium transition-all duration-150 sm:flex-none sm:justify-start sm:px-4",
-        active
-          ? "border-ink-950 text-ink-950"
-          : "border-transparent text-ink-400 hover:border-ink-300 hover:text-ink-700"
-      )}
-    >
-      {icon}
-      {label}
-    </button>
   );
 }
 
@@ -189,7 +162,7 @@ function GithubTab({
   };
 
   return (
-    <div className="flex flex-1 flex-col items-center justify-center gap-6 px-8">
+    <div className="flex min-h-0 flex-1 flex-col items-center justify-start gap-6 overflow-y-auto px-8 pt-[100px]">
       <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-ink-100">
         <Github className="h-8 w-8 text-ink-600" />
       </div>

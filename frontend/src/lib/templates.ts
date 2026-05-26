@@ -3,6 +3,7 @@ export const TEMPLATE_IDS = [
   "modern",
   "saas",
   "document",
+  "manual",
   "compliance",
 ] as const;
 
@@ -32,6 +33,11 @@ export const TEMPLATE_OPTIONS: {
     value: "document",
     label: "Documento",
     description: "Impressão simples com tipografia clássica",
+  },
+  {
+    value: "manual",
+    label: "Manual",
+    description: "Manual operacional — preto e branco, sem fundos coloridos",
   },
   {
     value: "compliance",

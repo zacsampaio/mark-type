@@ -10,8 +10,15 @@ import { StatusBar } from "@/components/StatusBar";
 import { SiteFooter } from "@/components/SiteFooter";
 import { WorkspaceTabs, type WorkspaceMobileTab } from "@/components/WorkspaceTabs";
 import { WorkspaceChrome } from "@/components/WorkspaceChrome";
+import { WorkspaceActionRow } from "@/components/WorkspaceActionRow";
+import type { EditorTab } from "@/components/EditorTabBar";
 import { cn } from "@/lib/utils";
 import type { Template } from "@/lib/types";
+import {
+  DEFAULT_DOCUMENT_CUSTOMIZATION,
+  type DocumentCustomization,
+  type ExportFormat,
+} from "@/lib/document-customization";
 
 const DEFAULT_MARKDOWN = `# MarkType
 
@@ -69,8 +76,14 @@ export default function Home() {
     null
   );
   const [importToken, setImportToken] = useState(0);
-  const [template, setTemplate] = useState<Template>("modern");
-  const [exportingPdf, setExportingPdf] = useState(false);
+  const [template, setTemplate] = useState<Template>("document");
+  const [customization, setCustomization] = useState<DocumentCustomization>(
+    DEFAULT_DOCUMENT_CUSTOMIZATION
+  );
+  const [lastExportFormat, setLastExportFormat] = useState<ExportFormat | null>(
+    null
+  );
+  const [exporting, setExporting] = useState(false);
   const [exportStatus, setExportStatus] = useState<
     "idle" | "loading" | "success" | "error"
   >("idle");
@@ -78,6 +91,7 @@ export default function Home() {
     null
   );
   const [mobileTab, setMobileTab] = useState<WorkspaceMobileTab>("edit");
+  const [editorTab, setEditorTab] = useState<EditorTab>("paste");
 
   useEffect(() => {
     if (pathname !== "/") return;
@@ -134,15 +148,19 @@ export default function Home() {
     }
   }, []);
 
-  const handleExportPdf = useCallback(async () => {
-    setExportingPdf(true);
+  const handleExport = useCallback(async (format: ExportFormat) => {
+    setLastExportFormat(format);
+    setExporting(true);
     setExportStatus("loading");
     setExportErrorDetail(null);
+    const endpoint =
+      format === "pdf" ? "/api/generate-pdf" : "/api/generate-docx";
+    const filename = format === "pdf" ? "documento.pdf" : "documento.docx";
     try {
-      const res = await fetch("/api/generate-pdf", {
+      const res = await fetch(endpoint, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ markdown, template }),
+        body: JSON.stringify({ markdown, template, customization }),
       });
       let data: { url?: string; error?: string; note?: string } = {};
       try {
@@ -162,14 +180,16 @@ export default function Home() {
         return;
       }
       if (data.url) {
-        await triggerDownload(data.url, "documento.pdf");
+        await triggerDownload(data.url, filename);
         setExportStatus("success");
         if (data.note) {
           console.info("[export]", data.note);
         }
       } else {
         setExportErrorDetail(
-          "O servidor não devolveu URL do PDF. Confira Supabase e variáveis de ambiente."
+          format === "pdf"
+            ? "O servidor não devolveu URL do PDF. Confira Supabase e variáveis de ambiente."
+            : "O servidor não devolveu o ficheiro DOCX."
         );
         setExportStatus("error");
       }
@@ -177,9 +197,9 @@ export default function Home() {
       setExportErrorDetail("Erro de rede ou ao iniciar o download.");
       setExportStatus("error");
     } finally {
-      setExportingPdf(false);
+      setExporting(false);
     }
-  }, [markdown, template, triggerDownload]);
+  }, [markdown, template, customization, triggerDownload]);
 
   return (
     <div className="marktype-app flex min-h-dvh flex-col bg-parchment bg-paper-texture">
@@ -191,11 +211,22 @@ export default function Home() {
 
           <WorkspaceChrome mobileTab={mobileTab} template={template} />
 
-          <div className="flex min-h-0 flex-1 flex-col lg:flex-row">
+          <WorkspaceActionRow
+            editorTab={editorTab}
+            onEditorTabChange={setEditorTab}
+            template={template}
+            onTemplateChange={setTemplate}
+            customization={customization}
+            onCustomizationChange={setCustomization}
+            onExport={handleExport}
+            exporting={exporting}
+          />
+
+          <div className="flex min-h-0 flex-1 flex-col lg:grid lg:grid-cols-2 lg:divide-x lg:divide-ink-200/80">
             <section
               className={cn(
-                "flex min-h-[min(420px,55vh)] min-w-0 flex-1 flex-col border-ink-200/80 bg-parchment-50/90 lg:min-h-0",
-                "border-b lg:border-b-0 lg:border-r",
+                "flex min-h-[min(420px,55vh)] min-w-0 flex-1 flex-col bg-parchment-50/90 lg:min-h-0",
+                "border-b border-ink-200/80 lg:border-b-0",
                 mobileTab !== "edit" && "hidden lg:flex"
               )}
               aria-label="Editor de Markdown"
@@ -203,6 +234,9 @@ export default function Home() {
               <EditorPanel
                 markdown={markdown}
                 onMarkdownChange={setMarkdown}
+                activeTab={editorTab}
+                onTabChange={setEditorTab}
+                hideTabBarOnDesktop
                 importedRepoName={importedRepoLabel}
                 importToken={importToken}
                 onImportedRepoConsumed={() => setImportedRepoLabel(null)}
@@ -220,8 +254,11 @@ export default function Home() {
                 markdown={markdown}
                 template={template}
                 onTemplateChange={setTemplate}
-                onExportPdf={handleExportPdf}
-                exportingPdf={exportingPdf}
+                customization={customization}
+                onCustomizationChange={setCustomization}
+                onExport={handleExport}
+                exporting={exporting}
+                lastExportFormat={lastExportFormat}
                 exportStatus={exportStatus}
                 exportErrorDetail={exportErrorDetail}
               />

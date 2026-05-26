@@ -3,6 +3,8 @@
  * Keep template ids in sync with frontend `lib/templates.ts`.
  */
 
+import { buildCustomizationOverrideCss } from "./customization";
+
 const FONTS =
   "https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600&family=JetBrains+Mono:wght@400&family=Playfair+Display:ital,wght@0,400;0,600;0,700;1,400&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap";
 
@@ -168,6 +170,75 @@ function templateSpecificCss(template: string): string {
   a { color: #2563eb; }
 `;
 
+    case "manual":
+      return `
+  body {
+    font-family: Georgia, 'Times New Roman', serif;
+    font-size: 11pt;
+    color: #000;
+    background: #fff;
+    line-height: 1.5;
+  }
+  h1 {
+    font-size: 17pt;
+    font-weight: 700;
+    text-align: center;
+    margin-bottom: 0.35rem;
+    page-break-after: avoid;
+  }
+  h2 {
+    font-size: 12pt;
+    font-weight: 700;
+    margin-top: 1.35rem;
+    margin-bottom: 0.4rem;
+    page-break-after: avoid;
+  }
+  h3 {
+    font-size: 11pt;
+    font-weight: 700;
+    font-style: italic;
+    margin-top: 1rem;
+    margin-bottom: 0.35rem;
+    page-break-after: avoid;
+  }
+  h4 { font-size: 11pt; font-weight: 700; margin-top: 0.75rem; page-break-after: avoid; }
+  p { margin-bottom: 0.55rem; text-align: justify; }
+  blockquote {
+    border: none;
+    padding: 0;
+    margin: 0 0 1rem;
+    color: #000;
+    font-style: normal;
+    text-align: center;
+    font-size: 10pt;
+  }
+  ul, ol { margin-bottom: 0.65rem; }
+  li { margin-bottom: 0.15rem; }
+  table { border: none; margin: 0.75rem 0 1.25rem; font-size: 10.5pt; }
+  th, td { border: none; padding: 0.15rem 0.35rem; vertical-align: top; }
+  th { background: transparent; color: #000; font-weight: 400; }
+  tr:nth-child(even) td { background: transparent; }
+  td:last-child { text-align: right; white-space: nowrap; }
+  pre {
+    background: #fff;
+    color: #000;
+    border: 1px solid #ccc;
+    font-size: 9pt;
+  }
+  pre code { color: #000; background: none; }
+  code { background: #fff; color: #000; border: 1px solid #ddd; }
+  img {
+    display: block;
+    max-width: 85%;
+    margin: 0.75rem auto 0.35rem;
+    border: 1px solid #bbb;
+  }
+  em.caption, p em:only-child { display: block; text-align: center; font-size: 9.5pt; color: #333; }
+  strong { font-weight: 700; }
+  a { color: #000; }
+  hr { border-top: 1px solid #ccc; margin: 1.25rem 0; }
+`;
+
     case "document":
       return `
   body {
@@ -266,6 +337,16 @@ function complianceBannerHtml(template: string): string {
   return `<div class="compliance-banner">Documento para fins de conformidade e auditoria — revisar controles internos aplicáveis.</div>`;
 }
 
+export type {
+  DocumentCustomization,
+} from "./customization";
+export {
+  DEFAULT_DOCUMENT_CUSTOMIZATION,
+  mergeCustomization,
+  buildCustomizationOverrideCss,
+  customizationToCssVars,
+} from "./customization";
+
 export type BuildStyledDocumentOptions = {
   /**
    * Quando true (recomendado no servidor/Puppeteer), não carrega Google Fonts
@@ -273,6 +354,7 @@ export type BuildStyledDocumentOptions = {
    * O CSS já define fallbacks (system-ui, Georgia, etc.).
    */
   skipRemoteFonts?: boolean;
+  customization?: Partial<import("./customization").DocumentCustomization>;
 };
 
 /** Full HTML document for Puppeteer / print / data-URL fallback. */
@@ -282,6 +364,7 @@ export function buildStyledDocumentHtml(
   options?: BuildStyledDocumentOptions
 ): string {
   const css = templateSpecificCss(template);
+  const customCss = buildCustomizationOverrideCss(options?.customization);
   const banner = complianceBannerHtml(template);
   const skipFonts = options?.skipRemoteFonts === true;
   const fontLinks = skipFonts
@@ -298,6 +381,7 @@ ${fontLinks}
 <style>
 ${baseRules()}
 ${css}
+${customCss}
 </style>
 </head>
 <body>${banner}${html}</body>

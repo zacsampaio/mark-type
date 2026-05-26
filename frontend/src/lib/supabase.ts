@@ -1,27 +1,47 @@
-import { createClient } from "@supabase/supabase-js";
+import { createClient, type SupabaseClient } from "@supabase/supabase-js";
 
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL ?? "";
-const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ?? "";
+export function isSupabaseConfigured(): boolean {
+  return Boolean(
+    process.env.NEXT_PUBLIC_SUPABASE_URL?.trim() &&
+      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY?.trim()
+  );
+}
 
-// Client-side Supabase client
-export const supabase = createClient(supabaseUrl, supabaseAnonKey);
+function getSupabaseUrl(): string {
+  return process.env.NEXT_PUBLIC_SUPABASE_URL?.trim() ?? "";
+}
 
-// Server-side client (uses service role key for storage writes)
-export function createServerSupabaseClient() {
+function getSupabaseAnonKey(): string {
+  return process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY?.trim() ?? "";
+}
+
+/** Cliente browser — só quando Supabase está configurado. */
+export function createBrowserSupabaseClient(): SupabaseClient | null {
+  if (!isSupabaseConfigured()) return null;
+  return createClient(getSupabaseUrl(), getSupabaseAnonKey());
+}
+
+/** Cliente servidor (Storage / Postgres). */
+export function createServerSupabaseClient(): SupabaseClient | null {
+  if (!isSupabaseConfigured()) return null;
+
+  const supabaseUrl = getSupabaseUrl();
+  const supabaseAnonKey = getSupabaseAnonKey();
   const hasServiceRole = Boolean(
     process.env.SUPABASE_SERVICE_ROLE_KEY?.trim()
   );
   const serviceKey =
     process.env.SUPABASE_SERVICE_ROLE_KEY?.trim() ?? supabaseAnonKey;
+
   if (!hasServiceRole && process.env.NODE_ENV === "development") {
     console.warn(
-      "[supabase] SUPABASE_SERVICE_ROLE_KEY ausente — o upload para o bucket «pdfs» costuma falhar por RLS. Copia a service_role do dashboard ou de `supabase status`."
+      "[supabase] SUPABASE_SERVICE_ROLE_KEY ausente — upload para o bucket «pdfs» pode falhar por RLS. Use `supabase status` ou o dashboard."
     );
   }
+
   return createClient(supabaseUrl, serviceKey);
 }
 
-// Database types
 export interface DocumentRecord {
   id: string;
   created_at: string;

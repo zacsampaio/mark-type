@@ -3,6 +3,7 @@ export type TemplateId =
   | "modern"
   | "saas"
   | "document"
+  | "manual"
   | "compliance";
 
 export interface DocTemplate {
@@ -98,6 +99,24 @@ export const TEMPLATES: Record<TemplateId, DocTemplate> = {
       accentColor: "#333333",
       codeBackground: "#f3f3f3",
       codeColor: "#111111",
+    },
+  },
+  manual: {
+    id: "manual",
+    name: "Manual",
+    description: "Operational manual — black on white, no decorative backgrounds",
+    fontFamily: "Georgia, 'Times New Roman', serif",
+    previewClass: "template-manual",
+    margin: "2.5cm",
+    pageSize: "A4",
+    styles: {
+      coverBg: "#ffffff",
+      coverText: "#000000",
+      headingFont: "Georgia, serif",
+      bodyFont: "Georgia, serif",
+      accentColor: "#000000",
+      codeBackground: "#ffffff",
+      codeColor: "#000000",
     },
   },
   compliance: {

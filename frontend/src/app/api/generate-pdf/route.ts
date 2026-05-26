@@ -1,5 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
-import { buildStyledDocumentHtml } from "@marktype/document-styles";
+import {
+  buildStyledDocumentHtml,
+  mergeCustomization,
+} from "@marktype/document-styles";
+import type { DocumentCustomization } from "@/lib/document-customization";
 import { auth } from "@/auth";
 import { markdownToHtml } from "@/lib/markdown";
 import { isValidTemplate } from "@/lib/templates";
@@ -78,10 +82,12 @@ async function renderPdfFromHtml(html: string): Promise<Buffer> {
 
 export async function POST(req: NextRequest) {
   try {
-    const { markdown, template: rawTemplate } = (await req.json()) as {
-      markdown: string;
-      template: string;
-    };
+    const { markdown, template: rawTemplate, customization } =
+      (await req.json()) as {
+        markdown: string;
+        template: string;
+        customization?: Partial<DocumentCustomization>;
+      };
 
     if (!markdown) {
       return NextResponse.json({ error: "markdown is required" }, { status: 400 });
@@ -95,6 +101,7 @@ export async function POST(req: NextRequest) {
     const html = markdownToHtml(markdown);
     const fullHtml = buildStyledDocumentHtml(html, template, {
       skipRemoteFonts: true,
+      customization: mergeCustomization(customization),
     });
     const pdfBuffer = await renderPdfFromHtml(fullHtml);
     const filename = `docs/${Date.now()}-${template}.pdf`;

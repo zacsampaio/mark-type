@@ -119,7 +119,10 @@ npm run dev
 | `modern` | Moderno |
 | `saas` | Simples |
 | `document` | Documento |
+| `manual` | Manual (operacional, preto e branco) |
 | `compliance` | Compliance |
+
+Exemplo de manual operacional (Central de Serviços Imobiliário): ver `docs/manual-central-servicos-imobiliario.md` e `docs/COMO-ESCREVER-MANUAL.md`. Use o modelo **Manual** na exportação.
 
 ---
 

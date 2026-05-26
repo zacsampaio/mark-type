@@ -14,13 +14,13 @@ interface WorkspaceChromeProps {
 export function WorkspaceChrome({ mobileTab, template }: WorkspaceChromeProps) {
   return (
     <div className="shrink-0 border-b border-ink-200/90 bg-white/95">
-      <div className="hidden min-h-[3.25rem] lg:grid lg:grid-cols-2">
-        <div className="flex items-center border-r border-ink-200/80 px-5 sm:px-6">
+      <div className="hidden h-11 lg:grid lg:grid-cols-2 lg:divide-x lg:divide-ink-200/80">
+        <div className="flex items-center px-1 sm:px-2">
           <span className="text-xs font-semibold uppercase tracking-wider text-ink-500">
             Entrada
           </span>
         </div>
-        <div className="flex items-center justify-between gap-3 px-5 sm:px-6">
+        <div className="flex items-center justify-between gap-3 px-1 sm:px-2">
           <div className="flex min-w-0 items-center gap-2">
             <Eye className="h-3.5 w-3.5 shrink-0 text-ink-400" aria-hidden />
             <span className="text-xs font-semibold uppercase tracking-wider text-ink-500">
@@ -31,7 +31,7 @@ export function WorkspaceChrome({ mobileTab, template }: WorkspaceChromeProps) {
         </div>
       </div>
 
-      <div className="flex min-h-[3.25rem] items-center border-b border-ink-200/80 px-5 sm:px-6 lg:hidden">
+      <div className="flex h-11 items-center border-b border-ink-200/80 px-1 sm:px-2 lg:hidden">
         {mobileTab === "edit" ? (
           <span className="text-xs font-semibold uppercase tracking-wider text-ink-500">
             Entrada

@@ -82,7 +82,11 @@ const nextConfig = {
       "./node_modules/@sparticuz/chromium/**/*",
     ],
   },
-  serverExternalPackages: ["puppeteer-core", "puppeteer"],
+  serverExternalPackages: [
+    "puppeteer-core",
+    "puppeteer",
+    "html-to-docx",
+  ],
   transpilePackages: [
     "@marktype/markdown",
     "@marktype/templates",
